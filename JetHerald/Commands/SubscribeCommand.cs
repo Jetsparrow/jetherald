@@ -12,7 +12,7 @@ namespace JetHerald
             this.db = db;
         }
 
-        public async Task<string> Execute(CommandString cmd, MessageEventArgs args)
+        public string Execute(CommandString cmd, MessageEventArgs args)
         {
             if (cmd.Parameters.Length < 1)
                 return null;
@@ -20,7 +20,7 @@ namespace JetHerald
             var chatid = args.Message.Chat.Id;
             var token = cmd.Parameters[0];
 
-            var topic = await db.GetTopic(token, chatid);
+            var topic = db.GetTopic(token, chatid);
 
             if (topic == null)
                 return "topic not found";
@@ -30,7 +30,7 @@ namespace JetHerald
                 return "token mismatch";
             else
             {
-                await db.CreateSubscription(topic.TopicId, chatid);
+                db.CreateSubscription(topic.TopicId, chatid);
                 return $"subscribed to {topic.Name}";
             }
         }

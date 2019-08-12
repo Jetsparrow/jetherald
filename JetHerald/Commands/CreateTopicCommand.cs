@@ -15,7 +15,7 @@ namespace JetHerald.Commands
             this.db = db;
         }
 
-        public async Task<string> Execute(CommandString cmd, MessageEventArgs messageEventArgs)
+        public string Execute(CommandString cmd, MessageEventArgs messageEventArgs)
         {
             if (cmd.Parameters.Length < 1)
                 return null;
@@ -32,7 +32,7 @@ namespace JetHerald.Commands
 
             try
             {
-                var topic = await db.CreateTopic(msg.From.Id, name, descr);
+                var topic = db.CreateTopic(msg.From.Id, name, descr);
                 return $"created {topic.Name}\n" +
                     $"readToken\n{topic.ReadToken}\n" +
                     $"writeToken\n{topic.WriteToken}\n" +

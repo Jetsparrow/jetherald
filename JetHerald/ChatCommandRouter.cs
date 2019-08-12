@@ -8,7 +8,7 @@ namespace JetHerald
 {
     public interface IChatCommand
     {
-        Task<string> Execute(CommandString cmd, MessageEventArgs messageEventArgs);
+        string Execute(CommandString cmd, MessageEventArgs messageEventArgs);
     }
 
     public class ChatCommandRouter
@@ -22,7 +22,7 @@ namespace JetHerald
             Username = username;
         }
 
-        public async Task<string> Execute(object sender, MessageEventArgs args)
+        public string Execute(object sender, MessageEventArgs args)
         {
             var text = args.Message.Text;
             if (CommandString.TryParse(text, out var cmd))
@@ -37,7 +37,7 @@ namespace JetHerald
                     try
                     {
                         Log.LogDebug($"Handling message via {commands[cmd.Command].GetType().Name}");
-                        return await commands[cmd.Command].Execute(cmd, args);
+                        return commands[cmd.Command].Execute(cmd, args);
                     }
                     catch (Exception e)
                     {
