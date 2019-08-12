@@ -19,15 +19,15 @@ namespace JetHerald.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] ReportArgs args)
+        public IActionResult Post([FromBody] ReportArgs args)
         {
-            var t = await Db.GetTopic(args.Topic);
+            var t = Db.GetTopic(args.Topic);
             if (t == null)
                 return new NotFoundResult();
             else if (!t.WriteToken.Equals(args.WriteToken, StringComparison.OrdinalIgnoreCase))
                 return StatusCode(403);
 
-            await Herald.PublishMessage(t, args.Message);
+            Herald.PublishMessage(t, args.Message);
             return new OkResult();
         }
 

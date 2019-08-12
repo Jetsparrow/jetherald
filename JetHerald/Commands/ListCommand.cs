@@ -13,11 +13,11 @@ namespace JetHerald
             this.db = db;
         }
 
-        public async Task<string> Execute(CommandString cmd, MessageEventArgs messageEventArgs)
+        public string Execute(CommandString cmd, MessageEventArgs messageEventArgs)
         {
             var msg = messageEventArgs.Message;
             var chatid = msg.Chat.Id;
-            var topics = await db.GetTopicsForChat(chatid);
+            var topics = db.GetTopicsForChat(chatid);
 
             return topics.Any()
                 ? "Topics:\n" + string.Join("\n", topics.Select(GetTopicListing))
