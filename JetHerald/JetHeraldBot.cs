@@ -32,13 +32,13 @@ namespace JetHerald
         {
             if (Config.UseProxy)
             {
-                Client = new TelegramBotClient(Config.ApiKey);
-            }
-            else
-            {
                 var httpProxy = new WebProxy(Config.ProxyUrl)
                     { Credentials = new NetworkCredential(Config.ProxyLogin, Config.ProxyPassword) };
                 Client = new TelegramBotClient(Config.ApiKey, httpProxy);
+            }
+            else
+            {
+                Client = new TelegramBotClient(Config.ApiKey);
             }
             Me = await Client.GetMeAsync();
 
