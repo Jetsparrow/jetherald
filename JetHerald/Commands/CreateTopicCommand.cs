@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types.Enums;

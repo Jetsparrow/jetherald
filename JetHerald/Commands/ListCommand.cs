@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Threading.Tasks;
 using Telegram.Bot.Args;
 
 namespace JetHerald
