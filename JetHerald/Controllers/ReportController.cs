@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JetHerald.Controllers

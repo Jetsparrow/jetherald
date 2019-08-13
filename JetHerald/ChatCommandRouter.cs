@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot.Args;
 
@@ -16,10 +15,13 @@ namespace JetHerald
         string Username { get; }
         ILogger Log { get; }
 
+        Dictionary<string, IChatCommand> Commands { get; }
+
         public ChatCommandRouter(string username, ILogger log)
         {
             Log = log;
             Username = username;
+            Commands = new Dictionary<string, IChatCommand>();
         }
 
         public string Execute(object sender, MessageEventArgs args)
@@ -32,12 +34,12 @@ namespace JetHerald
                     Log.LogDebug("Message not directed at us");
                     return null;
                 }
-                if (commands.ContainsKey(cmd.Command))
+                if (Commands.ContainsKey(cmd.Command))
                 {
                     try
                     {
-                        Log.LogDebug($"Handling message via {commands[cmd.Command].GetType().Name}");
-                        return commands[cmd.Command].Execute(cmd, args);
+                        Log.LogDebug($"Handling message via {Commands[cmd.Command].GetType().Name}");
+                        return Commands[cmd.Command].Execute(cmd, args);
                     }
                     catch (Exception e)
                     {
@@ -54,12 +56,10 @@ namespace JetHerald
         {
             foreach (var cmd in cmds)
             {
-                if (commands.ContainsKey(cmd))
-                    throw new ArgumentException($"collision for {cmd}, commands {commands[cmd].GetType()} and {c.GetType()}");
-                commands[cmd] = c;
+                if (Commands.ContainsKey(cmd))
+                    throw new ArgumentException($"collision for {cmd}, commands {Commands[cmd].GetType()} and {c.GetType()}");
+                Commands[cmd] = c;
             }
         }
-
-        Dictionary<string, IChatCommand> commands = new Dictionary<string, IChatCommand>();
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Telegram.Bot.Args;
+﻿using Telegram.Bot.Args;
 using Telegram.Bot.Types.Enums;
 
 namespace JetHerald.Commands
