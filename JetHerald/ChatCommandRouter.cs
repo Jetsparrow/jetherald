@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot.Args;
 
@@ -7,7 +8,7 @@ namespace JetHerald
 {
     public interface IChatCommand
     {
-        string Execute(CommandString cmd, MessageEventArgs messageEventArgs);
+        Task<string> Execute(CommandString cmd, MessageEventArgs messageEventArgs);
     }
 
     public class ChatCommandRouter
@@ -24,7 +25,7 @@ namespace JetHerald
             Commands = new Dictionary<string, IChatCommand>();
         }
 
-        public string Execute(object sender, MessageEventArgs args)
+        public async Task<string> Execute(object sender, MessageEventArgs args)
         {
             var text = args.Message.Text;
             if (CommandString.TryParse(text, out var cmd))
@@ -39,7 +40,7 @@ namespace JetHerald
                     try
                     {
                         Log.LogDebug($"Handling message via {Commands[cmd.Command].GetType().Name}");
-                        return Commands[cmd.Command].Execute(cmd, args);
+                        return await Commands[cmd.Command].Execute(cmd, args);
                     }
                     catch (Exception e)
                     {
