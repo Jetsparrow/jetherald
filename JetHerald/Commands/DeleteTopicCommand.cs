@@ -1,4 +1,5 @@
-﻿using Telegram.Bot.Args;
+﻿using System.Threading.Tasks;
+using Telegram.Bot.Args;
 using Telegram.Bot.Types.Enums;
 
 namespace JetHerald.Commands
@@ -12,7 +13,7 @@ namespace JetHerald.Commands
             this.db = db;
         }
 
-        public string Execute(CommandString cmd, MessageEventArgs messageEventArgs)
+        public async Task<string> Execute(CommandString cmd, MessageEventArgs messageEventArgs)
         {
             if (cmd.Parameters.Length < 2)
                 return null;
@@ -25,7 +26,7 @@ namespace JetHerald.Commands
             string name = cmd.Parameters[0];
             string adminToken = cmd.Parameters[1];
 
-            var topic = db.DeleteTopic(name, adminToken);
+            var topic = await db.DeleteTopic(name, adminToken);
             return $"deleted {name} and all its subscriptions";
         }
     }

@@ -53,15 +53,15 @@ namespace JetHerald
             Client.StartReceiving();
         }
 
-        public void PublishMessage(Db.Topic topic, string message)
+        public async Task PublishMessage(Db.Topic topic, string message)
         {
-            var chatIds = Db.GetChatIdsForTopic(topic.TopicId);
+            var chatIds = await Db.GetChatIdsForTopic(topic.TopicId);
             var formatted = $"|{topic.Description}|:\n{message}";
             foreach (var c in chatIds)
-                _ = Client.SendTextMessageAsync(c, formatted);
+                await Client.SendTextMessageAsync(c, formatted);
         }
 
-        void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
+        async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
         {
             var msg = messageEventArgs.Message;
             if (msg == null || msg.Type != MessageType.Text)
@@ -69,9 +69,9 @@ namespace JetHerald
 
             try
             {
-                var reply = Commands.Execute(sender, messageEventArgs);
+                var reply = await Commands.Execute(sender, messageEventArgs);
                 if (reply != null)
-                    _ = Client.SendTextMessageAsync(
+                    await Client.SendTextMessageAsync(
                         chatId: msg.Chat.Id,
                         text: reply,
                         replyToMessageId: msg.MessageId);

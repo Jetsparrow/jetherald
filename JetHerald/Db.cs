@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using MySql.Data.MySqlClient;
 using Dapper;
+using System.Threading.Tasks;
 
 namespace JetHerald
 {
@@ -20,11 +21,11 @@ namespace JetHerald
             public long? ChatId { get; set; }
         }
 
-        public int DeleteTopic(string name, string adminToken)
+        public async Task<int> DeleteTopic(string name, string adminToken)
         {
             using (var c = GetConnection())
             {
-                return c.Execute(
+                return await c.ExecuteAsync(
                     " DELETE" +
                     " FROM topic" +
                     " WHERE Name = @name AND AdminToken = @adminToken",
@@ -32,20 +33,20 @@ namespace JetHerald
             }
         }
 
-        public Topic GetTopic(string name)
+        public async Task<Topic> GetTopic(string name)
         {
             using (var c = GetConnection())
-                return c.QuerySingleOrDefault<Topic>(
+                return await c.QuerySingleOrDefaultAsync<Topic>(
                     "SELECT *" +
                     " FROM topic" +
                     " WHERE Name = @name",
                     new { name });
         }
 
-        public Topic GetTopic(string token, long chatId)
+        public async Task<Topic> GetTopic(string token, long chatId)
         {
             using (var c = GetConnection())
-                return  c.QuerySingleOrDefault<Topic>(
+                return await c.QuerySingleOrDefaultAsync<Topic>(
                     " SELECT t.*, tc.ChatId " +
                     " FROM topic t " +
                     " LEFT JOIN topic_chat tc ON t.TopicId = tc.TopicId AND tc.ChatId = @chatId " +
@@ -53,7 +54,7 @@ namespace JetHerald
                     new { token, chatId});
         }
 
-        public Topic CreateTopic(long userId, string name, string descr)
+        public async Task<Topic> CreateTopic(long userId, string name, string descr)
         {
             var t = new Topic
             {
@@ -66,7 +67,7 @@ namespace JetHerald
             };
             using (var c = GetConnection())
             {
-                return c.QuerySingleOrDefault<Topic>(
+                return await c.QuerySingleOrDefaultAsync<Topic>(
                 " INSERT INTO herald.topic " +
                 " ( CreatorId,  Name,  Description,  ReadToken,  WriteToken,  AdminToken) " +
                 " VALUES " +
@@ -75,20 +76,20 @@ namespace JetHerald
                     t);
             }
         }
-        public IEnumerable<long> GetChatIdsForTopic(uint topicid)
+        public async Task<IEnumerable<long>> GetChatIdsForTopic(uint topicid)
         {
             using (var c = GetConnection())
-                return c.Query<long>(
+                return await c.QueryAsync<long>(
                     " SELECT ChatId" +
                     " FROM topic_chat" +
                     " WHERE TopicId = @topicid",
                     new { topicid });
         }
 
-        public IEnumerable<Topic> GetTopicsForChat(long chatid)
+        public async Task<IEnumerable<Topic>> GetTopicsForChat(long chatid)
         {
             using (var c = GetConnection())
-                return c.Query<Topic>(
+                return await c.QueryAsync<Topic>(
                     " SELECT t.*" +
                     " FROM topic_chat ct" +
                     " JOIN topic t on t.TopicId = ct.TopicId" +
@@ -96,10 +97,10 @@ namespace JetHerald
                     new { chatid });
         }
 
-        public void CreateSubscription(uint topicId, long chatId)
+        public async Task CreateSubscription(uint topicId, long chatId)
         {
             using (var c = GetConnection())
-                c.Execute(
+                await c.ExecuteAsync(
                     " INSERT INTO topic_chat" +
                     " (ChatId, TopicId )" +
                     " VALUES" +
@@ -107,10 +108,10 @@ namespace JetHerald
                     new { topicId, chatId });
         }
 
-        public int RemoveSubscription(string topicName, long chatId)
+        public async Task<int> RemoveSubscription(string topicName, long chatId)
         {
             using (var c = GetConnection())
-                return c.Execute(
+                return await c.ExecuteAsync(
                     " DELETE tc " +
                     " FROM topic_chat tc" +
                     " JOIN topic t ON tc.TopicId = t.TopicId " +

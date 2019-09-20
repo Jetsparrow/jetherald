@@ -8,9 +8,9 @@ namespace JetHerald.Controllers
     public class EchoController : ControllerBase
     {
         [HttpGet]
-        public IActionResult Get(string msg)
+        public async Task<IActionResult> Get(string msg)
         {
-            Task.Delay(100);
+            await Task.Delay(100);
             return Ok(msg);
         }
 
