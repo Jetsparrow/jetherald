@@ -33,7 +33,7 @@ namespace JetHerald
             if (Config.UseProxy)
             {
                 var httpProxy = new WebProxy(Config.ProxyUrl)
-                    { Credentials = new NetworkCredential(Config.ProxyLogin, Config.ProxyPassword) };
+                { Credentials = new NetworkCredential(Config.ProxyLogin, Config.ProxyPassword) };
                 Client = new TelegramBotClient(Config.ApiKey, httpProxy);
             }
             else
@@ -78,7 +78,7 @@ namespace JetHerald
             }
             catch (Exception e)
             {
-                Log.LogError(e, "Exception occured during handling of command: "+ msg.Text);
+                Log.LogError(e, "Exception occured during handling of command: " + msg.Text);
             }
         }
     }
