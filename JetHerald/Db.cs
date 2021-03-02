@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using MySql.Data.MySqlClient;
 using Dapper;
@@ -51,7 +51,7 @@ namespace JetHerald
                     " FROM topic t " +
                     " LEFT JOIN topic_chat tc ON t.TopicId = tc.TopicId AND tc.ChatId = @chatId " +
                     " WHERE ReadToken = @token",
-                    new { token, chatId});
+                    new { token, chatId });
         }
 
         public async Task<Topic> CreateTopic(long userId, string name, string descr)

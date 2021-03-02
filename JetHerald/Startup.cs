@@ -37,7 +37,7 @@ namespace JetHerald
             {
                 app.UseDeveloperExceptionPage();
             }
-            
+
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
