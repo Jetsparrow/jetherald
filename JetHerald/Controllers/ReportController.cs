@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace JetHerald.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
     public class ReportController : ControllerBase
     {
@@ -18,6 +17,7 @@ namespace JetHerald.Controllers
             Db = db;
         }
 
+        [Route("api/report")]
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ReportArgs args)
         {
