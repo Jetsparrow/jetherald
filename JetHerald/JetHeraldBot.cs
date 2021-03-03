@@ -8,6 +8,7 @@ using Telegram.Bot.Args;
 using Telegram.Bot.Types.Enums;
 
 using JetHerald.Commands;
+using System.Threading;
 
 namespace JetHerald
 {
@@ -26,6 +27,8 @@ namespace JetHerald
 
         TelegramBotClient Client { get; set; }
         ChatCommandRouter Commands;
+        CancellationTokenSource HeartbeatCancellation;
+        Task HeartbeatTask;
         Telegram.Bot.Types.User Me { get; set; }
 
         public async Task Init()
@@ -49,8 +52,49 @@ namespace JetHerald
             Commands.Add(new UnsubscribeCommand(Db), "unsubscribe", "unsub");
             Commands.Add(new ListCommand(Db), "list");
 
+            HeartbeatCancellation = new();
+            HeartbeatTask = CheckHeartbeats(HeartbeatCancellation.Token);
+
             Client.OnMessage += BotOnMessageReceived;
             Client.StartReceiving();
+        }
+
+        public async Task Stop()
+        {
+            Client.StopReceiving();
+            HeartbeatCancellation.Cancel();
+            try
+            {
+                await HeartbeatTask;
+            }
+            catch (TaskCanceledException)
+            {
+
+            }
+        }
+
+        public async Task CheckHeartbeats(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                await Task.Delay(1000 * 10, token);
+
+                foreach (var chatSent in await Db.GetExpiredTopics(token))
+                {
+                    var formatted = $"!{chatSent.Description}!:\nTimeout expired at {chatSent.ExpiryTime}";
+                    await Client.SendTextMessageAsync(chatSent.ChatId, formatted, cancellationToken: token);
+                }
+
+                await Db.MarkExpiredTopics(token);
+            }
+        }
+
+        public async Task HeartbeatSent(Db.Topic topic)
+        {
+            var chatIds = await Db.GetChatIdsForTopic(topic.TopicId);
+            var formatted = $"!{topic.Description}!:\nA heartbeat has been sent.";
+            foreach (var c in chatIds)
+                await Client.SendTextMessageAsync(c, formatted);
         }
 
         public async Task PublishMessage(Db.Topic topic, string message)
