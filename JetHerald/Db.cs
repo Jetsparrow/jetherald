@@ -1,8 +1,10 @@
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using MySql.Data.MySqlClient;
 using Dapper;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace JetHerald
 {
@@ -17,8 +19,17 @@ namespace JetHerald
             public string ReadToken { get; set; }
             public string WriteToken { get; set; }
             public string AdminToken { get; set; }
+            public DateTime? ExpiryTime { get; set; }
+            public bool ExpiryMessageSent { get; set; }
 
             public long? ChatId { get; set; }
+        }
+
+        public class ExpiredTopicChat
+        {
+            public long ChatId;
+            public string Description;
+            public DateTime ExpiryTime { get; set; }
         }
 
         public async Task<int> DeleteTopic(string name, string adminToken)
@@ -117,6 +128,49 @@ namespace JetHerald
                     " JOIN topic t ON tc.TopicId = t.TopicId " +
                     " WHERE t.Name = @topicName AND tc.ChatId = @chatId;",
                     new { topicName, chatId });
+        }
+
+        public Task AddExpiry(string topicName, int addedTime)
+        {
+            using var c = GetConnection();
+            return c.ExecuteAsync(
+                " UPDATE topic" +
+                " SET ExpiryTime = CURRENT_TIMESTAMP() + INTERVAL @addedTime SECOND," +
+                " ExpiryMessageSent = 0" +
+                " WHERE Name = @topicName",
+                new { topicName, addedTime });
+        }
+
+        public Task DisableExpiry(string name, string adminToken)
+        {
+            using var c = GetConnection();
+            return c.ExecuteAsync(
+                " UPDATE topic" +
+                " SET ExpiryTime = NULL," +
+                " ExpiryMessageSent = 0" +
+                " WHERE Name = @name AND AdminToken = @adminToken",
+                new { name, adminToken });
+        }
+
+        public Task<IEnumerable<ExpiredTopicChat>> GetExpiredTopics(CancellationToken token = default)
+        {
+            using var c = GetConnection();
+            return c.QueryAsync<ExpiredTopicChat>(
+                " SELECT tc.ChatId, t.Description, t.ExpiryTime" +
+                " FROM topic_chat tc" +
+                " INNER JOIN topic t ON t.TopicId = tc.TopicId" +
+                " WHERE t.ExpiryTime < CURRENT_TIMESTAMP() AND NOT t.ExpiryMessageSent",
+                token);
+        }
+
+        public Task MarkExpiredTopics(CancellationToken token = default)
+        {
+            using var c = GetConnection();
+            return c.ExecuteAsync(
+                " UPDATE topic t" +
+                " SET t.ExpiryMessageSent = 1" +
+                " WHERE t.ExpiryTime < CURRENT_TIMESTAMP()",
+                token);
         }
 
         public Db(IOptions<Options.ConnectionStrings> cfg)
