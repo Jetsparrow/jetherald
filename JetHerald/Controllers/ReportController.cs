@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Runtime.Serialization;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,7 +19,35 @@ namespace JetHerald.Controllers
 
         [Route("api/report")]
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] ReportArgs args)
+        public async Task<IActionResult> Report()
+        {
+            var q = Request.Query;
+            if (q.ContainsKey("Topic")
+             && q.ContainsKey("Message")
+             && q.ContainsKey("WriteToken"))
+            {
+                ReportArgs args = new();
+                args.Topic = q["Topic"];
+                args.Message = q["Message"];
+                args.WriteToken = q["WriteToken"];
+                return await DoReport(args);
+            }
+
+            try
+            {
+                var args = await JsonSerializer.DeserializeAsync<ReportArgs>(HttpContext.Request.Body, new()
+                {
+                    IncludeFields = true
+                });
+                return await DoReport(args);
+            }
+            catch (JsonException)
+            {
+                return BadRequest();
+            }
+        }
+
+        private async Task<IActionResult> DoReport(ReportArgs args)
         {
             var t = await Db.GetTopic(args.Topic);
             if (t == null)
@@ -31,12 +59,11 @@ namespace JetHerald.Controllers
             return new OkResult();
         }
 
-        [DataContract]
         public class ReportArgs
         {
-            [DataMember] public string Topic { get; set; }
-            [DataMember] public string Message { get; set; }
-            [DataMember] public string WriteToken { get; set; }
+            public string Topic { get; set; }
+            public string Message { get; set; }
+            public string WriteToken { get; set; }
         }
     }
 }
