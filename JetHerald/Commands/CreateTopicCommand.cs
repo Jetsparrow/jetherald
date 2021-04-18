@@ -32,7 +32,7 @@ namespace JetHerald.Commands
 
             try
             {
-                var topic = await db.CreateTopic(msg.From.Id, name, descr);
+                var topic = await db.CreateTopic(msg.From.Id, "Telegram", name, descr);
                 return $"created {topic.Name}\n" +
                     $"readToken\n{topic.ReadToken}\n" +
                     $"writeToken\n{topic.WriteToken}\n" +

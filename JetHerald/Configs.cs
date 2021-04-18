@@ -14,4 +14,9 @@
         public string ProxyPassword { get; set; }
         public string ProxyLogin { get; set; }
     }
+
+    public class Discord
+    {
+        public string Token { get; set; }
+    }
 }

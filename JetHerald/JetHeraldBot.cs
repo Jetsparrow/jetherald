@@ -12,20 +12,27 @@ using System.Threading;
 
 namespace JetHerald
 {
-    public class JetHeraldBot
+    public partial class JetHeraldBot
     {
         Db Db { get; set; }
-        Options.Telegram Config { get; }
+        Options.Telegram TelegramConfig { get; }
+        Options.Discord DiscordConfig { get; }
         ILogger<JetHeraldBot> Log { get; }
+        ILoggerFactory LoggerFactory { get; }
+        IServiceProvider ServiceProvider { get; }
 
-        public JetHeraldBot(Db db, IOptions<Options.Telegram> cfg, ILogger<JetHeraldBot> log)
+        public JetHeraldBot(Db db, IOptions<Options.Telegram> telegramCfg, IOptions<Options.Discord> discordCfg, ILogger<JetHeraldBot> log, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
             Db = db;
-            Config = cfg.Value;
+            TelegramConfig = telegramCfg.Value;
+            DiscordConfig = discordCfg.Value;
+
             Log = log;
+            LoggerFactory = loggerFactory;
+            ServiceProvider = serviceProvider;
         }
 
-        TelegramBotClient Client { get; set; }
+        TelegramBotClient TelegramBot { get; set; }
         ChatCommandRouter Commands;
         CancellationTokenSource HeartbeatCancellation;
         Task HeartbeatTask;
@@ -33,17 +40,17 @@ namespace JetHerald
 
         public async Task Init()
         {
-            if (Config.UseProxy)
+            if (TelegramConfig.UseProxy)
             {
-                var httpProxy = new WebProxy(Config.ProxyUrl)
-                { Credentials = new NetworkCredential(Config.ProxyLogin, Config.ProxyPassword) };
-                Client = new TelegramBotClient(Config.ApiKey, httpProxy);
+                var httpProxy = new WebProxy(TelegramConfig.ProxyUrl)
+                { Credentials = new NetworkCredential(TelegramConfig.ProxyLogin, TelegramConfig.ProxyPassword) };
+                TelegramBot = new TelegramBotClient(TelegramConfig.ApiKey, httpProxy);
             }
             else
             {
-                Client = new TelegramBotClient(Config.ApiKey);
+                TelegramBot = new TelegramBotClient(TelegramConfig.ApiKey);
             }
-            Me = await Client.GetMeAsync();
+            Me = await TelegramBot.GetMeAsync();
 
             Commands = new ChatCommandRouter(Me.Username, Log);
             Commands.Add(new CreateTopicCommand(Db), "createtopic");
@@ -55,13 +62,16 @@ namespace JetHerald
             HeartbeatCancellation = new();
             HeartbeatTask = CheckHeartbeats(HeartbeatCancellation.Token);
 
-            Client.OnMessage += BotOnMessageReceived;
-            Client.StartReceiving();
+            TelegramBot.OnMessage += BotOnMessageReceived;
+            TelegramBot.StartReceiving();
+
+            await InitDiscord();
         }
 
         public async Task Stop()
         {
-            Client.StopReceiving();
+            await DiscordBot.DisconnectAsync();
+            TelegramBot.StopReceiving();
             HeartbeatCancellation.Cancel();
             try
             {
@@ -82,7 +92,7 @@ namespace JetHerald
                 foreach (var chatSent in await Db.GetExpiredTopics(token))
                 {
                     var formatted = $"!{chatSent.Description}!:\nTimeout expired at {chatSent.ExpiryTime}";
-                    await Client.SendTextMessageAsync(chatSent.ChatId, formatted, cancellationToken: token);
+                    await TelegramBot.SendTextMessageAsync(chatSent.ChatId, formatted, cancellationToken: token);
                 }
 
                 await Db.MarkExpiredTopics(token);
@@ -94,7 +104,12 @@ namespace JetHerald
             var chatIds = await Db.GetChatIdsForTopic(topic.TopicId);
             var formatted = $"!{topic.Description}!:\nA heartbeat has been sent.";
             foreach (var c in chatIds)
-                await Client.SendTextMessageAsync(c, formatted);
+            {
+                if (c.Service == "Telegram")
+                    await TelegramBot.SendTextMessageAsync(c.ChatId, formatted);
+                else if (c.Service == "Discord")
+                    await SendMessageToDiscordChannel(c.ChatId, formatted);
+            }
         }
 
         public async Task PublishMessage(Db.Topic topic, string message)
@@ -102,7 +117,12 @@ namespace JetHerald
             var chatIds = await Db.GetChatIdsForTopic(topic.TopicId);
             var formatted = $"|{topic.Description}|:\n{message}";
             foreach (var c in chatIds)
-                await Client.SendTextMessageAsync(c, formatted);
+            {
+                if (c.Service == "Telegram")
+                    await TelegramBot.SendTextMessageAsync(c.ChatId, formatted);
+                else if (c.Service == "Discord")
+                    await SendMessageToDiscordChannel(c.ChatId, formatted);
+            }
         }
 
         async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
@@ -115,7 +135,7 @@ namespace JetHerald
             {
                 var reply = await Commands.Execute(sender, messageEventArgs);
                 if (reply != null)
-                    await Client.SendTextMessageAsync(
+                    await TelegramBot.SendTextMessageAsync(
                         chatId: msg.Chat.Id,
                         text: reply,
                         replyToMessageId: msg.MessageId);
