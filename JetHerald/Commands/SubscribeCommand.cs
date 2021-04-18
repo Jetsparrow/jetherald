@@ -20,7 +20,7 @@ namespace JetHerald
             var chatid = args.Message.Chat.Id;
             var token = cmd.Parameters[0];
 
-            var topic = await db.GetTopic(token, chatid);
+            var topic = await db.GetTopic(token, chatid, "Telegram");
 
             if (topic == null)
                 return "topic not found";
@@ -30,7 +30,7 @@ namespace JetHerald
                 return "token mismatch";
             else
             {
-                await db.CreateSubscription(topic.TopicId, chatid);
+                await db.CreateSubscription(topic.TopicId, chatid, "Telegram");
                 return $"subscribed to {topic.Name}";
             }
         }
