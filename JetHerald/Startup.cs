@@ -21,6 +21,7 @@ namespace JetHerald
         {
             services.Configure<Options.ConnectionStrings>(Configuration.GetSection("ConnectionStrings"));
             services.Configure<Options.Telegram>(Configuration.GetSection("Telegram"));
+            services.Configure<Options.Discord>(Configuration.GetSection("Discord"));
             services.AddSingleton<Db>();
             services.AddSingleton<JetHeraldBot>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
@@ -31,7 +32,7 @@ namespace JetHerald
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             var bot = app.ApplicationServices.GetService<JetHeraldBot>();
-            bot.Init().Wait();
+            bot.Init().GetAwaiter().GetResult();
             app.UsePathBase(Configuration.GetValue<string>("PathBase"));
             if (env.IsDevelopment())
             {
