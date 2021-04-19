@@ -24,7 +24,7 @@ namespace JetHerald
             if (description == null)
                 description = name;
 
-            await ctx.TriggerTypingAsync();
+            _ = ctx.TriggerTypingAsync();
 
             try
             {
@@ -50,7 +50,7 @@ namespace JetHerald
             [Description("The admin token of the topic to be deleted.")]
             string adminToken)
         {
-            await ctx.TriggerTypingAsync();
+            _ = ctx.TriggerTypingAsync();
             var changed = await db.DeleteTopic(name, adminToken);
             if (changed > 0)
                 await ctx.RespondAsync($"deleted {name} and all its subscriptions");
@@ -62,7 +62,7 @@ namespace JetHerald
         [Description("List all subscriptions in this channel.")]
         public async Task ListSubscriptions(CommandContext ctx)
         {
-            await ctx.TriggerTypingAsync();
+            _ = ctx.TriggerTypingAsync();
 
             var topics = await db.GetTopicsForChat((long)ctx.Channel.Id, "Discord");
 
@@ -79,7 +79,7 @@ namespace JetHerald
             string token
         )
         {
-            await ctx.TriggerTypingAsync();
+            _ = ctx.TriggerTypingAsync();
 
             var topic = await db.GetTopic(token, (long)ctx.Channel.Id, "Discord");
 
@@ -104,7 +104,7 @@ namespace JetHerald
             string name
         )
         {
-            await ctx.TriggerTypingAsync();
+            _ = ctx.TriggerTypingAsync();
 
             int affected = await db.RemoveSubscription(name, (long)ctx.Channel.Id, "Discord");
             if (affected >= 1)
