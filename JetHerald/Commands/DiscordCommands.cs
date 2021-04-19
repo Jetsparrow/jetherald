@@ -67,7 +67,7 @@ namespace JetHerald
             var topics = await db.GetTopicsForChat((long)ctx.Channel.Id, "Discord");
 
             await ctx.RespondAsync(topics.Any()
-                ? "Topics:\n" + string.Join("\n", topics.Select(ListCommand.GetTopicListing))
+                ? "Topics:\n" + string.Join("\n", topics)
                 : "No subscriptions active.");
         }
 

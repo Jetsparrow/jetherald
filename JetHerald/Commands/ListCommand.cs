@@ -20,12 +20,8 @@ namespace JetHerald
             var topics = await db.GetTopicsForChat(chatid, "Telegram");
 
             return topics.Any()
-                ? "Topics:\n" + string.Join("\n", topics.Select(GetTopicListing))
+                ? "Topics:\n" + string.Join("\n", topics)
                 : "No subscriptions active.";
         }
-
-        internal static string GetTopicListing(Db.Topic t)
-            => t.Name == t.Description ? t.Name : $"{t.Name}: {t.Description}";
-
     }
 }
