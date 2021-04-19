@@ -25,6 +25,9 @@ namespace JetHerald
 
             public long? ChatId { get; set; }
             public string Service { get; set; }
+
+            public override string ToString()
+                => Name == Description ? Name : $"{Name}: {Description}";
         }
 
         public class ExpiredTopicChat
