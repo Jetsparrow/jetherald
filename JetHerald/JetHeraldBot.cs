@@ -89,16 +89,23 @@ namespace JetHerald
             {
                 await Task.Delay(1000 * 10, token);
 
-                foreach (var chatSent in await Db.GetExpiredTopics(token))
+                try
                 {
-                    var formatted = $"!{chatSent.Description}!:\nTimeout expired at {chatSent.ExpiryTime}";
-                    if (chatSent.Service == "Telegram")
-                        await TelegramBot.SendTextMessageAsync(chatSent.ChatId, formatted, cancellationToken: token);
-                    else if (chatSent.Service == "Discord")
-                        await SendMessageToDiscordChannel(chatSent.ChatId, formatted);
-                }
+                    foreach (var chatSent in await Db.GetExpiredTopics(token))
+                    {
+                        var formatted = $"!{chatSent.Description}!:\nTimeout expired at {chatSent.ExpiryTime}";
+                        if (chatSent.Service == "Telegram")
+                            await TelegramBot.SendTextMessageAsync(chatSent.ChatId, formatted, cancellationToken: token);
+                        else if (chatSent.Service == "Discord")
+                            await SendMessageToDiscordChannel(chatSent.ChatId, formatted);
+                    }
 
-                await Db.MarkExpiredTopics(token);
+                    await Db.MarkExpiredTopics(token);
+                }
+                catch (Exception e)
+                {
+                    Log.LogError(e, "Exception while checking heartbeats");
+                }
             }
         }
 
