@@ -92,7 +92,10 @@ namespace JetHerald
                 foreach (var chatSent in await Db.GetExpiredTopics(token))
                 {
                     var formatted = $"!{chatSent.Description}!:\nTimeout expired at {chatSent.ExpiryTime}";
-                    await TelegramBot.SendTextMessageAsync(chatSent.ChatId, formatted, cancellationToken: token);
+                    if (chatSent.Service == "Telegram")
+                        await TelegramBot.SendTextMessageAsync(chatSent.ChatId, formatted, cancellationToken: token);
+                    else if (chatSent.Service == "Discord")
+                        await SendMessageToDiscordChannel(chatSent.ChatId, formatted);
                 }
 
                 await Db.MarkExpiredTopics(token);
