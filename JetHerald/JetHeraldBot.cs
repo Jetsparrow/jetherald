@@ -95,7 +95,7 @@ namespace JetHerald
                     {
                         var chats = await Db.GetChatsForTopic(attack.TopicId);
                         foreach (var chat in chats)
-                            await SendMessageImpl(chat, $"!{attack.Description}!:\nTimeout expired at {attack.ExpiryTime}");
+                            await SendMessageImpl(chat, $"!{attack.Description}!:\nHeart \"{attack.Heart}\" stopped beating at {attack.ExpiryTime}");
                         await Db.MarkHeartAttackReported(attack.HeartattackId);
                         if (token.IsCancellationRequested)
                             return;
@@ -108,8 +108,8 @@ namespace JetHerald
             }
         }
 
-        public Task HeartbeatSent(Db.Topic topic)
-            => BroadcastMessageImpl(topic, $"!{topic.Description}!:\nA heartbeat has been sent.");
+        public Task HeartbeatSent(Db.Topic topic, string heart)
+            => BroadcastMessageImpl(topic, $"!{topic.Description}!:\nHeart \"{heart}\" has started beating.");
 
         public Task PublishMessage(Db.Topic topic, string message)
             => BroadcastMessageImpl(topic, $"|{topic.Description}|:\n{message}");

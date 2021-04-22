@@ -70,11 +70,11 @@ namespace JetHerald.Controllers
             else if (!t.WriteToken.Equals(args.WriteToken, StringComparison.Ordinal))
                 return StatusCode(403);
 
-            
+
             var affected = await Db.ReportHeartbeat(t.TopicId, heart, args.ExpiryTimeout);
 
             if (affected == 1)
-                await Herald.HeartbeatSent(t);
+                await Herald.HeartbeatSent(t, heart);
 
             return new OkResult();
         }
