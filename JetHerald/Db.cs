@@ -146,7 +146,7 @@ namespace JetHerald
         {
             using var c = GetConnection();
             return c.QueryAsync<ExpiredTopicChat>(
-                " SELECT tc.Chat, tc.Service, t.Description, t.ExpiryTime" +
+                " SELECT tc.Chat, t.Description, t.ExpiryTime" +
                 " FROM topic_chat tc" +
                 " INNER JOIN topic t ON t.TopicId = tc.TopicId" +
                 " WHERE t.ExpiryTime < CURRENT_TIMESTAMP() AND NOT t.ExpiryMessageSent",
