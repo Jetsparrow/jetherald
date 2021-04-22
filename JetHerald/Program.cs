@@ -15,6 +15,8 @@ namespace JetHerald
     {
         public static void Main(string[] args)
         {
+            DapperConverters.Register();
+
             var logger = NLog.Web.NLogBuilder.ConfigureNLog("NLog.config").GetCurrentClassLogger();
             try
             {
