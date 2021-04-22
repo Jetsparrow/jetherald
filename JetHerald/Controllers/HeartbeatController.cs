@@ -35,10 +35,11 @@ namespace JetHerald.Controllers
                 HeartbeatArgs args = new();
                 args.Topic = q["Topic"];
                 args.WriteToken = q["WriteToken"];
-                if (!int.TryParse(q["ExpiryTimeout"], out args.ExpiryTimeout))
+                if (!int.TryParse(q["ExpiryTimeout"], out var expTimeout))
                 {
                     return BadRequest();
                 }
+                args.ExpiryTimeout = expTimeout;
                 return await DoHeartbeat(args);
             }
 
@@ -58,7 +59,7 @@ namespace JetHerald.Controllers
 
         [Route("api/heartbeat")]
         [HttpGet]
-        public Task<IActionResult> HeartbeatGet(HeartbeatArgs args) => DoHeartbeat(args);
+        public Task<IActionResult> HeartbeatGet([FromQuery] HeartbeatArgs args) => DoHeartbeat(args);
 
         private async Task<IActionResult> DoHeartbeat(HeartbeatArgs args)
         {
@@ -81,10 +82,10 @@ namespace JetHerald.Controllers
 
         public class HeartbeatArgs
         {
-            [JsonPropertyName("Topic")] public string Topic;
-            [JsonPropertyName("Heart")] public string Heart;
-            [JsonPropertyName("ExpiryTimeout")] public int ExpiryTimeout;
-            [JsonPropertyName("WriteToken")] public string WriteToken;
+            [JsonPropertyName("Topic")] public string Topic { get; set; }
+            [JsonPropertyName("Heart")] public string Heart { get; set; }
+            [JsonPropertyName("ExpiryTimeout")] public int ExpiryTimeout { get; set; }
+            [JsonPropertyName("WriteToken")] public string WriteToken { get; set; }
         }
     }
 }
