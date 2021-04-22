@@ -9,7 +9,7 @@ namespace JetHerald
     [ModuleLifespan(ModuleLifespan.Transient)]
     public class DiscordCommands : BaseCommandModule
     {
-        public Db db { private get; set; }
+        public Db Db { get; set; }
 
         [Command("createtopic")]
         [Description("Creates a topic.")]
@@ -28,7 +28,7 @@ namespace JetHerald
 
             try
             {
-                var topic = await db.CreateTopic((long)ctx.User.Id, "Discord", name, description);
+                var topic = await Db.CreateTopic(NamespacedId.Discord(ctx.User.Id), name, description);
                 await ctx.RespondAsync($"created {topic.Name}\n" +
                     $"readToken\n{topic.ReadToken}\n" +
                     $"writeToken\n{topic.WriteToken}\n" +
@@ -51,7 +51,7 @@ namespace JetHerald
             string adminToken)
         {
             _ = ctx.TriggerTypingAsync();
-            var changed = await db.DeleteTopic(name, adminToken);
+            var changed = await Db.DeleteTopic(name, adminToken);
             if (changed > 0)
                 await ctx.RespondAsync($"deleted {name} and all its subscriptions");
             else
@@ -64,7 +64,7 @@ namespace JetHerald
         {
             _ = ctx.TriggerTypingAsync();
 
-            var topics = await db.GetTopicsForChat((long)ctx.Channel.Id, "Discord");
+            var topics = await Db.GetTopicsForChat(NamespacedId.Discord(ctx.Channel.Id));
 
             await ctx.RespondAsync(topics.Any()
                 ? "Topics:\n" + string.Join("\n", topics)
@@ -81,17 +81,18 @@ namespace JetHerald
         {
             _ = ctx.TriggerTypingAsync();
 
-            var topic = await db.GetTopic(token, (long)ctx.Channel.Id, "Discord");
+            var chat = NamespacedId.Discord(ctx.Channel.Id);
+            var topic = await Db.GetTopicForSub(token, chat);
 
             if (topic == null)
                 await ctx.RespondAsync("topic not found");
-            else if (topic.ChatId == (long)ctx.Channel.Id)
+            else if (topic.Chat.HasValue && topic.Chat.Value == chat)
                 await ctx.RespondAsync($"already subscribed to {topic.Name}");
             else if (topic.ReadToken != token)
                 await ctx.RespondAsync("token mismatch");
             else
             {
-                await db.CreateSubscription(topic.TopicId, (long)ctx.Channel.Id, "Discord");
+                await Db.CreateSubscription(topic.TopicId, chat);
                 await ctx.RespondAsync($"subscribed to {topic.Name}");
             }
         }
@@ -106,7 +107,7 @@ namespace JetHerald
         {
             _ = ctx.TriggerTypingAsync();
 
-            int affected = await db.RemoveSubscription(name, (long)ctx.Channel.Id, "Discord");
+            int affected = await Db.RemoveSubscription(name, NamespacedId.Discord(ctx.Channel.Id));
             if (affected >= 1)
                 await ctx.RespondAsync($"unsubscribed from {name}");
             else

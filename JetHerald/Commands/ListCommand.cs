@@ -17,7 +17,7 @@ namespace JetHerald
         {
             var msg = messageEventArgs.Message;
             var chatid = msg.Chat.Id;
-            var topics = await db.GetTopicsForChat(chatid, "Telegram");
+            var topics = await db.GetTopicsForChat(NamespacedId.Telegram(chatid));
 
             return topics.Any()
                 ? "Topics:\n" + string.Join("\n", topics)

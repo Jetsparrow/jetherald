@@ -18,9 +18,10 @@ namespace JetHerald
                 return null;
 
             var msg = messageEventArgs.Message;
-            var chatid = msg.Chat.Id;
+            var chat = NamespacedId.Telegram(msg.Chat.Id);
+
             var topicName = cmd.Parameters[0];
-            int affected = await db.RemoveSubscription(topicName, chatid, "Telegram");
+            int affected = await db.RemoveSubscription(topicName, chat);
             if (affected >= 1)
                 return $"unsubscribed from {topicName}";
             else

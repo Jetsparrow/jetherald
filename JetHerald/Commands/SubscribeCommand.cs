@@ -17,20 +17,20 @@ namespace JetHerald
             if (cmd.Parameters.Length < 1)
                 return null;
 
-            var chatid = args.Message.Chat.Id;
+            var chat = NamespacedId.Telegram(args.Message.Chat.Id);
             var token = cmd.Parameters[0];
 
-            var topic = await db.GetTopic(token, chatid, "Telegram");
+            var topic = await db.GetTopicForSub(token, chat);
 
             if (topic == null)
                 return "topic not found";
-            else if (topic.ChatId == chatid)
+            else if (topic.Chat == chat)
                 return $"already subscribed to {topic.Name}";
             else if (topic.ReadToken != token)
                 return "token mismatch";
             else
             {
-                await db.CreateSubscription(topic.TopicId, chatid, "Telegram");
+                await db.CreateSubscription(topic.TopicId, chat);
                 return $"subscribed to {topic.Name}";
             }
         }
