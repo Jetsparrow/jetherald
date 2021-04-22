@@ -143,11 +143,11 @@ namespace JetHerald
                     INSERT INTO heartbeat
 	                    (TopicId, Heart, ExpiryTime)
 	                    VALUES
-	                    (@topicId, @heart, @expiry)
+	                    (@topicId, @heart, CURRENT_TIMESTAMP() + INTERVAL @timeoutSeconds SECOND)
                         ON DUPLICATE KEY UPDATE
-                        ExpiryTime = @expiry;
+                        ExpiryTime = CURRENT_TIMESTAMP() + INTERVAL @timeoutSeconds SECOND;
                 ",
-                new { topicId, heart, expiry = DateTime.UtcNow.AddSeconds(timeoutSeconds)});
+                new { topicId, heart, @timeoutSeconds});
         }
 
         public async Task<IEnumerable<HeartAttack>> ProcessHeartAttacks()
@@ -156,10 +156,10 @@ namespace JetHerald
             return await c.QueryAsync<HeartAttack>("CALL process_heartattacks();");
         }
 
-        public async Task MarkHeartAttackReported(ulong id)
+        public async Task MarkHeartAttackReported(ulong id, byte status = 1)
         {
             using var c = GetConnection();
-            await c.ExecuteAsync("UPDATE heartattack SET Reported = 1 WHERE HeartattackId = @id", new {id});
+            await c.ExecuteAsync("UPDATE heartattack SET Status = @status WHERE HeartattackId = @id", new {id, status});
         }
 
 
