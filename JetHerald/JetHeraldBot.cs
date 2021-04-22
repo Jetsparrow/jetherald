@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Telegram.Bot;
-using Telegram.Bot.Args;
-using Telegram.Bot.Types.Enums;
-
-using JetHerald.Commands;
 using System.Threading;
 
 namespace JetHerald
@@ -32,39 +26,12 @@ namespace JetHerald
             ServiceProvider = serviceProvider;
         }
 
-        TelegramBotClient TelegramBot { get; set; }
-        ChatCommandRouter Commands;
         CancellationTokenSource HeartbeatCancellation;
         Task HeartbeatTask;
-        Telegram.Bot.Types.User Me { get; set; }
 
         public async Task Init()
         {
-            if (TelegramConfig.UseProxy)
-            {
-                var httpProxy = new WebProxy(TelegramConfig.ProxyUrl)
-                { Credentials = new NetworkCredential(TelegramConfig.ProxyLogin, TelegramConfig.ProxyPassword) };
-                TelegramBot = new TelegramBotClient(TelegramConfig.ApiKey, httpProxy);
-            }
-            else
-            {
-                TelegramBot = new TelegramBotClient(TelegramConfig.ApiKey);
-            }
-            Me = await TelegramBot.GetMeAsync();
-
-            Commands = new ChatCommandRouter(Me.Username, Log);
-            Commands.Add(new CreateTopicCommand(Db), "createtopic");
-            Commands.Add(new DeleteTopicCommand(Db), "deletetopic");
-            Commands.Add(new SubscribeCommand(Db), "subscribe", "sub");
-            Commands.Add(new UnsubscribeCommand(Db), "unsubscribe", "unsub");
-            Commands.Add(new ListCommand(Db), "list");
-
-            HeartbeatCancellation = new();
-            HeartbeatTask = CheckHeartbeats(HeartbeatCancellation.Token);
-
-            TelegramBot.OnMessage += BotOnMessageReceived;
-            TelegramBot.StartReceiving();
-
+            await InitTelegram();
             await InitDiscord();
         }
 
@@ -127,7 +94,7 @@ namespace JetHerald
             {
                 if (chat.Namespace == "telegram")
                 {
-                    await TelegramBot.SendTextMessageAsync(long.Parse(chat.Id), formatted);
+                    await SendMessageToTelegramChannel(chat, formatted);
                 }
                 else if (chat.Namespace == "discord")
                 {
@@ -135,27 +102,6 @@ namespace JetHerald
                 }
             }
             catch (Exception e) { Log.LogError(e, $"Error while sending message \"{formatted}\" to {chat}"); }
-        }
-
-        async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
-        {
-            var msg = messageEventArgs.Message;
-            if (msg == null || msg.Type != MessageType.Text)
-                return;
-
-            try
-            {
-                var reply = await Commands.Execute(sender, messageEventArgs);
-                if (reply != null)
-                    await TelegramBot.SendTextMessageAsync(
-                        chatId: msg.Chat.Id,
-                        text: reply,
-                        replyToMessageId: msg.MessageId);
-            }
-            catch (Exception e)
-            {
-                Log.LogError(e, "Exception occured during handling of command: " + msg.Text);
-            }
         }
     }
 }
