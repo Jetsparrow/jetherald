@@ -30,9 +30,10 @@ namespace JetHerald
         }
 
 
-        private async Task SendMessageToDiscordChannel(long chatId, string formatted)
+        async Task SendMessageToDiscordChannel(NamespacedId chat, string formatted)
         {
-            await DiscordBot.SendMessageAsync(await DiscordBot.GetChannelAsync((ulong)chatId), formatted);
+            var id = ulong.Parse(chat.Id);
+            await DiscordBot.SendMessageAsync(await DiscordBot.GetChannelAsync(id), formatted);
         }
     }
 }

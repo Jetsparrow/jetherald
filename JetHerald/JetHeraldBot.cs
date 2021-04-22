@@ -92,13 +92,7 @@ namespace JetHerald
                 try
                 {
                     foreach (var chatSent in await Db.GetExpiredTopics(token))
-                    {
-                        var formatted = $"!{chatSent.Description}!:\nTimeout expired at {chatSent.ExpiryTime}";
-                        if (chatSent.Service == "Telegram")
-                            await TelegramBot.SendTextMessageAsync(chatSent.ChatId, formatted, cancellationToken: token);
-                        else if (chatSent.Service == "Discord")
-                            await SendMessageToDiscordChannel(chatSent.ChatId, formatted);
-                    }
+                        await SendMessageImpl(chatSent.Chat, $"!{chatSent.Description}!:\nTimeout expired at {chatSent.ExpiryTime}");
 
                     await Db.MarkExpiredTopics(token);
                 }
@@ -109,30 +103,33 @@ namespace JetHerald
             }
         }
 
-        public async Task HeartbeatSent(Db.Topic topic)
+        public Task HeartbeatSent(Db.Topic topic)
+            => BroadcastMessageImpl(topic, $"!{topic.Description}!:\nA heartbeat has been sent.");
+
+        public Task PublishMessage(Db.Topic topic, string message)
+            => BroadcastMessageImpl(topic, $"|{topic.Description}|:\n{message}");
+
+        async Task BroadcastMessageImpl(Db.Topic topic, string formatted)
         {
-            var chatIds = await Db.GetChatIdsForTopic(topic.TopicId);
-            var formatted = $"!{topic.Description}!:\nA heartbeat has been sent.";
+            var chatIds = await Db.GetChatsForTopic(topic.TopicId);
             foreach (var c in chatIds)
-            {
-                if (c.Service == "Telegram")
-                    await TelegramBot.SendTextMessageAsync(c.ChatId, formatted);
-                else if (c.Service == "Discord")
-                    await SendMessageToDiscordChannel(c.ChatId, formatted);
-            }
+                await SendMessageImpl(c, formatted);
         }
 
-        public async Task PublishMessage(Db.Topic topic, string message)
+        async Task SendMessageImpl(NamespacedId chat, string formatted)
         {
-            var chatIds = await Db.GetChatIdsForTopic(topic.TopicId);
-            var formatted = $"|{topic.Description}|:\n{message}";
-            foreach (var c in chatIds)
+            try
             {
-                if (c.Service == "Telegram")
-                    await TelegramBot.SendTextMessageAsync(c.ChatId, formatted);
-                else if (c.Service == "Discord")
-                    await SendMessageToDiscordChannel(c.ChatId, formatted);
+                if (chat.Namespace == "telegram")
+                {
+                    await TelegramBot.SendTextMessageAsync(long.Parse(chat.Id), formatted);
+                }
+                else if (chat.Namespace == "discord")
+                {
+                    await SendMessageToDiscordChannel(chat, formatted);
+                }
             }
+            catch (Exception e) { Log.LogError(e, $"Error while sending message \"{formatted}\" to {chat}"); }
         }
 
         async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)

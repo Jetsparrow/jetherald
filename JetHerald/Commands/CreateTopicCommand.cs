@@ -20,7 +20,6 @@ namespace JetHerald.Commands
             if (cmd.Parameters.Length < 1)
                 return null;
             var msg = messageEventArgs.Message;
-            var chatid = msg.Chat.Id;
 
             if (msg.Chat.Type != ChatType.Private)
                 return null;
@@ -32,7 +31,7 @@ namespace JetHerald.Commands
 
             try
             {
-                var topic = await db.CreateTopic(msg.From.Id, "Telegram", name, descr);
+                var topic = await db.CreateTopic(NamespacedId.Telegram(msg.From.Id), name, descr);
                 return $"created {topic.Name}\n" +
                     $"readToken\n{topic.ReadToken}\n" +
                     $"writeToken\n{topic.WriteToken}\n" +

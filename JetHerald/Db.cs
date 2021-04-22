@@ -13,8 +13,7 @@ namespace JetHerald
         public class Topic
         {
             public uint TopicId { get; set; }
-            public long CreatorId { get; set; }
-            public string CreatorService { get; set; }
+            public NamespacedId Creator { get; set; }
             public string Name { get; set; }
             public string Description { get; set; }
             public string ReadToken { get; set; }
@@ -23,8 +22,7 @@ namespace JetHerald
             public DateTime? ExpiryTime { get; set; }
             public bool ExpiryMessageSent { get; set; }
 
-            public long? ChatId { get; set; }
-            public string Service { get; set; }
+            public NamespacedId? Chat { get; set; }
 
             public override string ToString()
                 => Name == Description ? Name : $"{Name}: {Description}";
@@ -32,16 +30,9 @@ namespace JetHerald
 
         public class ExpiredTopicChat
         {
-            public long ChatId;
-            public string Service;
+            public NamespacedId Chat;
             public string Description;
             public DateTime ExpiryTime { get; set; }
-        }
-
-        public class ChatData
-        {
-            public long ChatId;
-            public string Service;
         }
 
         public async Task<int> DeleteTopic(string name, string adminToken)
@@ -66,81 +57,78 @@ namespace JetHerald
                     new { name });
         }
 
-        public async Task<Topic> GetTopic(string token, long chatId, string service)
+        public async Task<Topic> GetTopicForSub(string token, NamespacedId chat)
         {
-            using (var c = GetConnection())
-                return await c.QuerySingleOrDefaultAsync<Topic>(
-                    " SELECT t.*, tc.ChatId " +
-                    " FROM topic t " +
-                    " LEFT JOIN topic_chat tc ON t.TopicId = tc.TopicId AND tc.ChatId = @chatId AND tc.Service = @service " +
-                    " WHERE ReadToken = @token",
-                    new { token, chatId, service });
+            using var c = GetConnection();
+            return await c.QuerySingleOrDefaultAsync<Topic>(
+                " SELECT t.*, tc.Chat " +
+                " FROM topic t " +
+                " LEFT JOIN topic_chat tc ON t.TopicId = tc.TopicId AND tc.Chat = @chat " +
+                " WHERE ReadToken = @token",
+                new { token, chat });
         }
 
-        public async Task<Topic> CreateTopic(long userId, string service, string name, string descr)
+        public async Task<Topic> CreateTopic(NamespacedId user, string name, string descr)
         {
             var t = new Topic
             {
-                CreatorId = userId,
+                Creator = user,
                 Name = name,
                 Description = descr,
                 ReadToken = TokenHelper.GetToken(),
                 WriteToken = TokenHelper.GetToken(),
-                AdminToken = TokenHelper.GetToken(),
-                Service = service
+                AdminToken = TokenHelper.GetToken()
             };
-            using (var c = GetConnection())
-            {
-                return await c.QuerySingleOrDefaultAsync<Topic>(
+            using var c = GetConnection();
+            return await c.QuerySingleOrDefaultAsync<Topic>(
                 " INSERT INTO herald.topic " +
-                " ( CreatorId,  Name,  Description,  ReadToken,  WriteToken,  AdminToken,  Service) " +
+                " ( Creator,  Name,  Description,  ReadToken,  WriteToken,  AdminToken) " +
                 " VALUES " +
-                " (@CreatorId, @Name, @Description, @ReadToken, @WriteToken, @AdminToken, @Service); " +
+                " (@Creator, @Name, @Description, @ReadToken, @WriteToken, @AdminToken); " +
                 " SELECT * FROM topic WHERE TopicId = LAST_INSERT_ID(); ",
-                    t);
-            }
+                t);
         }
-        public async Task<IEnumerable<ChatData>> GetChatIdsForTopic(uint topicid)
+        public async Task<IEnumerable<NamespacedId>> GetChatsForTopic(uint topicid)
         {
-            using (var c = GetConnection())
-                return await c.QueryAsync<ChatData>(
-                    " SELECT ChatId, Service" +
-                    " FROM topic_chat" +
-                    " WHERE TopicId = @topicid",
-                    new { topicid });
-        }
-
-        public async Task<IEnumerable<Topic>> GetTopicsForChat(long chatid, string service)
-        {
-            using (var c = GetConnection())
-                return await c.QueryAsync<Topic>(
-                    " SELECT t.*" +
-                    " FROM topic_chat ct" +
-                    " JOIN topic t on t.TopicId = ct.TopicId" +
-                    " WHERE ct.ChatId = @chatid AND ct.Service = @service",
-                    new { chatid, service });
+            using var c = GetConnection();
+            return await c.QueryAsync<NamespacedId>(
+                " SELECT Chat " +
+                " FROM topic_chat " +
+                " WHERE TopicId = @topicid",
+                new { topicid });
         }
 
-        public async Task CreateSubscription(uint topicId, long chatId, string service)
+        public async Task<IEnumerable<Topic>> GetTopicsForChat(NamespacedId chat)
         {
-            using (var c = GetConnection())
-                await c.ExecuteAsync(
-                    " INSERT INTO topic_chat" +
-                    " (ChatId, TopicId, Service)" +
-                    " VALUES" +
-                    " (@chatId, @topicId, @service)",
-                    new { topicId, chatId, service });
+            using var c = GetConnection();
+            return await c.QueryAsync<Topic>(
+                " SELECT t.*" +
+                " FROM topic_chat ct" +
+                " JOIN topic t on t.TopicId = ct.TopicId" +
+                " WHERE ct.Chat = @chat",
+                new { chat });
         }
 
-        public async Task<int> RemoveSubscription(string topicName, long chatId, string service)
+        public async Task CreateSubscription(uint topicId, NamespacedId chat)
         {
-            using (var c = GetConnection())
-                return await c.ExecuteAsync(
-                    " DELETE tc " +
-                    " FROM topic_chat tc" +
-                    " JOIN topic t ON tc.TopicId = t.TopicId " +
-                    " WHERE t.Name = @topicName AND tc.ChatId = @chatId AND tc.Service = @service;",
-                    new { topicName, chatId, service });
+            using var c = GetConnection();
+            await c.ExecuteAsync(
+                " INSERT INTO topic_chat" +
+                " (Chat, TopicId)" +
+                " VALUES" +
+                " (@chat, @topicId)",
+                new { topicId, chat });
+        }
+
+        public async Task<int> RemoveSubscription(string topicName, NamespacedId chat)
+        {
+            using var c = GetConnection();
+            return await c.ExecuteAsync(
+                " DELETE tc " +
+                " FROM topic_chat tc" +
+                " JOIN topic t ON tc.TopicId = t.TopicId " +
+                " WHERE t.Name = @topicName AND tc.Chat = @chat;",
+                new { topicName, chat });
         }
 
         public Task AddExpiry(string topicName, int addedTime)
@@ -152,17 +140,6 @@ namespace JetHerald
                 " ExpiryMessageSent = 0" +
                 " WHERE Name = @topicName",
                 new { topicName, addedTime });
-        }
-
-        public Task DisableExpiry(string name, string adminToken)
-        {
-            using var c = GetConnection();
-            return c.ExecuteAsync(
-                " UPDATE topic" +
-                " SET ExpiryTime = NULL," +
-                " ExpiryMessageSent = 0" +
-                " WHERE Name = @name AND AdminToken = @adminToken",
-                new { name, adminToken });
         }
 
         public Task<IEnumerable<ExpiredTopicChat>> GetExpiredTopics(CancellationToken token = default)
