@@ -28,11 +28,14 @@ namespace JetHerald
                 => Name == Description ? Name : $"{Name}: {Description}";
         }
 
-        public class ExpiredTopicChat
+        public class HeartAttack
         {
-            public NamespacedId Chat;
-            public string Description;
+            public ulong HeartattackId { get; set; }
+            public uint TopicId { get; set; }
+            public string Heart { get; set; }
             public DateTime ExpiryTime { get; set; }
+
+            public string Description { get; set; }
         }
 
         public async Task<int> DeleteTopic(string name, string adminToken)
@@ -131,37 +134,36 @@ namespace JetHerald
                 new { topicName, chat });
         }
 
-        public Task AddExpiry(string topicName, int addedTime)
+
+        public async Task<int> ReportHeartbeat(uint topicId, string heart, int timeoutSeconds)
         {
             using var c = GetConnection();
-            return c.ExecuteAsync(
-                " UPDATE topic" +
-                " SET ExpiryTime = CURRENT_TIMESTAMP() + INTERVAL @addedTime SECOND," +
-                " ExpiryMessageSent = 0" +
-                " WHERE Name = @topicName",
-                new { topicName, addedTime });
+            return await c.ExecuteAsync(
+                @"
+                    INSERT INTO heartbeat
+	                    (TopicId, Heart, ExpiryTime)
+	                    VALUES
+	                    (@topicId, @heart, @expiry)
+                        ON DUPLICATE KEY UPDATE
+                        ExpiryTime = @expiry;
+                ",
+                new { topicId, heart, expiry = DateTime.UtcNow.AddSeconds(timeoutSeconds)});
         }
 
-        public Task<IEnumerable<ExpiredTopicChat>> GetExpiredTopics(CancellationToken token = default)
+        public async Task<IEnumerable<HeartAttack>> ProcessHeartAttacks()
         {
             using var c = GetConnection();
-            return c.QueryAsync<ExpiredTopicChat>(
-                " SELECT tc.Chat, t.Description, t.ExpiryTime" +
-                " FROM topic_chat tc" +
-                " INNER JOIN topic t ON t.TopicId = tc.TopicId" +
-                " WHERE t.ExpiryTime < CURRENT_TIMESTAMP() AND NOT t.ExpiryMessageSent",
-                token);
+            return await c.QueryAsync<HeartAttack>("CALL process_heartattacks();");
         }
 
-        public Task MarkExpiredTopics(CancellationToken token = default)
+        public async Task MarkHeartAttackReported(ulong id)
         {
             using var c = GetConnection();
-            return c.ExecuteAsync(
-                " UPDATE topic t" +
-                " SET t.ExpiryMessageSent = 1" +
-                " WHERE t.ExpiryTime < CURRENT_TIMESTAMP()",
-                token);
+            await c.ExecuteAsync("UPDATE heartattack SET Reported = 1 WHERE HeartattackId = @id", new {id});
         }
+
+
+
 
         public Db(IOptions<Options.ConnectionStrings> cfg)
         {

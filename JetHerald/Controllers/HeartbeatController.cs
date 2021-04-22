@@ -56,18 +56,25 @@ namespace JetHerald.Controllers
             }
         }
 
+        [Route("api/heartbeat")]
+        [HttpGet]
+        public Task<IActionResult> HeartbeatGet(HeartbeatArgs args) => DoHeartbeat(args);
+
         private async Task<IActionResult> DoHeartbeat(HeartbeatArgs args)
         {
+            var heart = args.Heart ?? "General";
+
             var t = await Db.GetTopic(args.Topic);
             if (t == null)
                 return new NotFoundResult();
-            else if (!t.WriteToken.Equals(args.WriteToken, StringComparison.OrdinalIgnoreCase))
+            else if (!t.WriteToken.Equals(args.WriteToken, StringComparison.Ordinal))
                 return StatusCode(403);
 
-            if (t.ExpiryMessageSent)
-                await Herald.HeartbeatSent(t);
+            
+            var affected = await Db.ReportHeartbeat(t.TopicId, heart, args.ExpiryTimeout);
 
-            await Db.AddExpiry(t.Name, args.ExpiryTimeout);
+            if (affected == 1)
+                await Herald.HeartbeatSent(t);
 
             return new OkResult();
         }
@@ -75,6 +82,7 @@ namespace JetHerald.Controllers
         public class HeartbeatArgs
         {
             [JsonPropertyName("Topic")] public string Topic;
+            [JsonPropertyName("Heart")] public string Heart;
             [JsonPropertyName("ExpiryTimeout")] public int ExpiryTimeout;
             [JsonPropertyName("WriteToken")] public string WriteToken;
         }

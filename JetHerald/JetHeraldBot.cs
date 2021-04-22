@@ -88,13 +88,18 @@ namespace JetHerald
             while (!token.IsCancellationRequested)
             {
                 await Task.Delay(1000 * 10, token);
-
                 try
                 {
-                    foreach (var chatSent in await Db.GetExpiredTopics(token))
-                        await SendMessageImpl(chatSent.Chat, $"!{chatSent.Description}!:\nTimeout expired at {chatSent.ExpiryTime}");
-
-                    await Db.MarkExpiredTopics(token);
+                    var attacks = await Db.ProcessHeartAttacks();
+                    foreach (var attack in attacks)
+                    {
+                        var chats = await Db.GetChatsForTopic(attack.TopicId);
+                        foreach (var chat in chats)
+                            await SendMessageImpl(chat, $"!{attack.Description}!:\nTimeout expired at {attack.ExpiryTime}");
+                        await Db.MarkHeartAttackReported(attack.HeartattackId);
+                        if (token.IsCancellationRequested)
+                            return;
+                    }
                 }
                 catch (Exception e)
                 {
