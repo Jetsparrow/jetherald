@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using JetHerald.Commands;
 
 namespace JetHerald
 {

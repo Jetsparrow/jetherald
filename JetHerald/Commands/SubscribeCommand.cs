@@ -1,20 +1,26 @@
 ﻿using System.Threading.Tasks;
+using Telegram.Bot;
 using Telegram.Bot.Args;
 
-namespace JetHerald
+namespace JetHerald.Commands
 {
     public class SubscribeCommand : IChatCommand
     {
         readonly Db db;
+        readonly TelegramBotClient bot;
 
-        public SubscribeCommand(Db db)
+        public SubscribeCommand(Db db, TelegramBotClient bot)
         {
             this.db = db;
+            this.bot = bot;
         }
 
         public async Task<string> Execute(CommandString cmd, MessageEventArgs args)
         {
             if (cmd.Parameters.Length < 1)
+                return null;
+
+            if (!await CommandHelper.CheckAdministrator(bot, args.Message))
                 return null;
 
             var chat = NamespacedId.Telegram(args.Message.Chat.Id);

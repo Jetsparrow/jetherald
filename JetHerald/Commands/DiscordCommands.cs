@@ -4,7 +4,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using MySql.Data.MySqlClient;
 
-namespace JetHerald
+namespace JetHerald.Commands
 {
     [ModuleLifespan(ModuleLifespan.Transient)]
     public class DiscordCommands : BaseCommandModule
@@ -60,6 +60,7 @@ namespace JetHerald
 
         [Command("list")]
         [Description("List all subscriptions in this channel.")]
+        [RequireUserPermissions(DSharpPlus.Permissions.ManageGuild)]
         public async Task ListSubscriptions(CommandContext ctx)
         {
             _ = ctx.TriggerTypingAsync();
@@ -73,6 +74,7 @@ namespace JetHerald
 
         [Command("subscribe")]
         [Description("Subscribes to a topic.")]
+        [RequireUserPermissions(DSharpPlus.Permissions.ManageGuild)]
         public async Task Subscribe(
             CommandContext ctx,
             [Description("The read token of the token to subscribe to.")]
@@ -99,6 +101,7 @@ namespace JetHerald
 
         [Command("unsubscribe")]
         [Description("Unsubscribes from a topic.")]
+        [RequireUserPermissions(DSharpPlus.Permissions.ManageGuild)]
         public async Task Unsubscribe(
             CommandContext ctx,
             [Description("The name of the topic to unsubscribe from.")]

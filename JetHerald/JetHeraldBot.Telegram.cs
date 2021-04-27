@@ -32,9 +32,9 @@ namespace JetHerald
             Commands = new ChatCommandRouter(Me.Username, Log);
             Commands.Add(new CreateTopicCommand(Db), "createtopic");
             Commands.Add(new DeleteTopicCommand(Db), "deletetopic");
-            Commands.Add(new SubscribeCommand(Db), "subscribe", "sub");
-            Commands.Add(new UnsubscribeCommand(Db), "unsubscribe", "unsub");
-            Commands.Add(new ListCommand(Db), "list");
+            Commands.Add(new SubscribeCommand(Db, TelegramBot), "subscribe", "sub");
+            Commands.Add(new UnsubscribeCommand(Db, TelegramBot), "unsubscribe", "unsub");
+            Commands.Add(new ListCommand(Db, TelegramBot), "list");
 
             HeartbeatCancellation = new();
             HeartbeatTask = CheckHeartbeats(HeartbeatCancellation.Token);
