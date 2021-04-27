@@ -5,9 +5,9 @@ namespace JetHerald
 {
     public static class TokenHelper
     {
-        static RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
-        static byte[] buf = new byte[24];
-        static readonly object SyncLock = new object();
+        static readonly RNGCryptoServiceProvider rng = new();
+        static readonly byte[] buf = new byte[24];
+        static readonly object SyncLock = new();
 
         public static string GetToken()
         {

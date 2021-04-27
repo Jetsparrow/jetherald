@@ -5,7 +5,7 @@ namespace JetHerald
 {
     public class SubscribeCommand : IChatCommand
     {
-        Db db;
+        readonly Db db;
 
         public SubscribeCommand(Db db)
         {

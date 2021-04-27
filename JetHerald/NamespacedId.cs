@@ -2,11 +2,11 @@
 
 namespace JetHerald
 {
-    public struct NamespacedId 
+    public struct NamespacedId
     {
         public string Namespace { get; init; }
         public string Id { get; init; }
-        
+
         public NamespacedId(string str)
         {
             var ind = str.IndexOf("://");
@@ -22,10 +22,10 @@ namespace JetHerald
         }
 
         public static NamespacedId Telegram(long id)
-            => new NamespacedId("telegram", $"{id}");
+            => new("telegram", $"{id}");
 
         public static NamespacedId Discord(ulong id)
-            => new NamespacedId("discord", $"{id}");   
+            => new("discord", $"{id}");
 
         public override string ToString() => $"{Namespace}://{Id}";
 
@@ -34,7 +34,7 @@ namespace JetHerald
         public override bool Equals(object obj)
             => obj is NamespacedId nsid && this == nsid;
 
-        public static bool operator == (NamespacedId a, NamespacedId b)
+        public static bool operator ==(NamespacedId a, NamespacedId b)
             => a.Namespace == b.Namespace && a.Id == b.Id;
 
         public static bool operator !=(NamespacedId a, NamespacedId b)

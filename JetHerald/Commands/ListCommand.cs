@@ -6,7 +6,7 @@ namespace JetHerald
 {
     public class ListCommand : IChatCommand
     {
-        Db db;
+        readonly Db db;
 
         public ListCommand(Db db)
         {
