@@ -1,20 +1,26 @@
 ﻿using System.Threading.Tasks;
+using Telegram.Bot;
 using Telegram.Bot.Args;
 
-namespace JetHerald
+namespace JetHerald.Commands
 {
     public class UnsubscribeCommand : IChatCommand
     {
         readonly Db db;
+        readonly TelegramBotClient bot;
 
-        public UnsubscribeCommand(Db db)
+        public UnsubscribeCommand(Db db, TelegramBotClient bot)
         {
             this.db = db;
+            this.bot = bot;
         }
 
         public async Task<string> Execute(CommandString cmd, MessageEventArgs messageEventArgs)
         {
             if (cmd.Parameters.Length < 1)
+                return null;
+
+            if (!await CommandHelper.CheckAdministrator(bot, messageEventArgs.Message))
                 return null;
 
             var msg = messageEventArgs.Message;
