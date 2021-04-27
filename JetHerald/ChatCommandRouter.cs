@@ -30,7 +30,7 @@ namespace JetHerald
             var text = args.Message.Text;
             if (CommandString.TryParse(text, out var cmd))
             {
-                if (cmd.UserName != null && cmd.UserName != Username)
+                if (cmd.Username != null && cmd.Username != Username)
                 {
                     Log.LogDebug("Message not directed at us");
                     return null;

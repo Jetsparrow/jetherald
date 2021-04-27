@@ -9,11 +9,12 @@ namespace JetHerald
         public CommandString(string command, string username, params string[] parameters)
         {
             Command = command;
+            Username = username;
             Parameters = parameters;
         }
 
         public string Command { get; }
-        public string UserName { get; }
+        public string Username { get; }
         public string[] Parameters { get; }
 
         static readonly char[] WS_CHARS = new[] { ' ', '\r', '\n', '\n' };
