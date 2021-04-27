@@ -19,7 +19,7 @@ namespace JetHerald
         class NamespacedIdHandler : SqlMapper.TypeHandler<NamespacedId>
         {
             public override void SetValue(IDbDataParameter parameter, NamespacedId value) => parameter.Value = value.ToString();
-            public override NamespacedId Parse(object value) => new NamespacedId((string)value);
+            public override NamespacedId Parse(object value) => new((string)value);
         }
     }
 }

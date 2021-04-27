@@ -8,7 +8,7 @@ namespace JetHerald.Commands
 {
     public class CreateTopicCommand : IChatCommand
     {
-        Db db;
+        readonly Db db;
 
         public CreateTopicCommand(Db db)
         {

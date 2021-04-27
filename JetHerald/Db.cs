@@ -40,24 +40,22 @@ namespace JetHerald
 
         public async Task<int> DeleteTopic(string name, string adminToken)
         {
-            using (var c = GetConnection())
-            {
-                return await c.ExecuteAsync(
-                    " DELETE" +
-                    " FROM topic" +
-                    " WHERE Name = @name AND AdminToken = @adminToken",
-                    new { name, adminToken });
-            }
+            using var c = GetConnection();
+            return await c.ExecuteAsync(
+                " DELETE" +
+                " FROM topic" +
+                " WHERE Name = @name AND AdminToken = @adminToken",
+                new { name, adminToken });
         }
 
         public async Task<Topic> GetTopic(string name)
         {
-            using (var c = GetConnection())
-                return await c.QuerySingleOrDefaultAsync<Topic>(
-                    "SELECT *" +
-                    " FROM topic" +
-                    " WHERE Name = @name",
-                    new { name });
+            using var c = GetConnection();
+            return await c.QuerySingleOrDefaultAsync<Topic>(
+                "SELECT *" +
+                " FROM topic" +
+                " WHERE Name = @name",
+                new { name });
         }
 
         public async Task<Topic> GetTopicForSub(string token, NamespacedId chat)
@@ -147,7 +145,7 @@ namespace JetHerald
                         ON DUPLICATE KEY UPDATE
                         ExpiryTime = CURRENT_TIMESTAMP() + INTERVAL @timeoutSeconds SECOND;
                 ",
-                new { topicId, heart, @timeoutSeconds});
+                new { topicId, heart, @timeoutSeconds });
         }
 
         public async Task<IEnumerable<HeartAttack>> ProcessHeartAttacks()
@@ -159,7 +157,7 @@ namespace JetHerald
         public async Task MarkHeartAttackReported(ulong id, byte status = 1)
         {
             using var c = GetConnection();
-            await c.ExecuteAsync("UPDATE heartattack SET Status = @status WHERE HeartattackId = @id", new {id, status});
+            await c.ExecuteAsync("UPDATE heartattack SET Status = @status WHERE HeartattackId = @id", new { id, status });
         }
 
 
@@ -171,6 +169,6 @@ namespace JetHerald
         }
 
         Options.ConnectionStrings Config { get; }
-        MySqlConnection GetConnection() => new MySqlConnection(Config.DefaultConnection);
+        MySqlConnection GetConnection() => new(Config.DefaultConnection);
     }
 }

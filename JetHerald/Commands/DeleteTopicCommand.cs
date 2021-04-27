@@ -6,7 +6,7 @@ namespace JetHerald.Commands
 {
     public class DeleteTopicCommand : IChatCommand
     {
-        Db db;
+        readonly Db db;
 
         public DeleteTopicCommand(Db db)
         {
