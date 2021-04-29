@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace JetHerald.Controllers
 {
@@ -10,11 +12,15 @@ namespace JetHerald.Controllers
     {
         Db Db { get; }
         JetHeraldBot Herald { get; }
+        LeakyBucket Timeouts { get; }
+        Options.Timeout Config { get; }
 
-        public ReportController(Db db, JetHeraldBot herald)
+        public ReportController(Db db, JetHeraldBot herald, LeakyBucket timeouts, IOptions<Options.Timeout> cfgOptions)
         {
             Herald = herald;
+            Timeouts = timeouts;
             Db = db;
+            Config = cfgOptions.Value;
         }
 
         [Route("api/report")]
@@ -55,7 +61,13 @@ namespace JetHerald.Controllers
             else if (!t.WriteToken.Equals(args.WriteToken, StringComparison.OrdinalIgnoreCase))
                 return StatusCode(403);
 
+            if (Timeouts.IsTimedOut(t.TopicId))
+                return StatusCode(StatusCodes.Status429TooManyRequests);
+
             await Herald.PublishMessage(t, args.Message);
+
+            Timeouts.ApplyCost(t.TopicId, Config.ReportCost);
+
             return new OkResult();
         }
 

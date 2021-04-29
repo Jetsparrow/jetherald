@@ -1,12 +1,10 @@
 ﻿using System;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Options;
 
 namespace JetHerald.Controllers
 {
@@ -15,11 +13,15 @@ namespace JetHerald.Controllers
     {
         Db Db { get; }
         JetHeraldBot Herald { get; }
+        LeakyBucket Timeouts { get; }
+        Options.Timeout Config { get; }
 
-        public HeartbeatController(Db db, JetHeraldBot herald)
+        public HeartbeatController(Db db, JetHeraldBot herald, LeakyBucket timeouts, IOptions<Options.Timeout> cfgOptions)
         {
             Herald = herald;
+            Timeouts = timeouts;
             Db = db;
+            Config = cfgOptions.Value;
         }
 
         // tfw when you need to manually parse body and query
@@ -71,11 +73,15 @@ namespace JetHerald.Controllers
             else if (!t.WriteToken.Equals(args.WriteToken, StringComparison.Ordinal))
                 return StatusCode(403);
 
+            if (Timeouts.IsTimedOut(t.TopicId))
+                return StatusCode(StatusCodes.Status429TooManyRequests);
 
             var affected = await Db.ReportHeartbeat(t.TopicId, heart, args.ExpiryTimeout);
 
             if (affected == 1)
                 await Herald.HeartbeatSent(t, heart);
+
+            Timeouts.ApplyCost(t.TopicId, Config.HeartbeatCost);
 
             return new OkResult();
         }
