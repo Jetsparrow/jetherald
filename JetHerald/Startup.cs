@@ -22,8 +22,10 @@ namespace JetHerald
             services.Configure<Options.ConnectionStrings>(Configuration.GetSection("ConnectionStrings"));
             services.Configure<Options.Telegram>(Configuration.GetSection("Telegram"));
             services.Configure<Options.Discord>(Configuration.GetSection("Discord"));
+            services.Configure<Options.Timeout>(Configuration.GetSection("Timeout"));
             services.AddSingleton<Db>();
             services.AddSingleton<JetHeraldBot>();
+            services.AddSingleton<LeakyBucket>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
         }

@@ -19,4 +19,11 @@
     {
         public string Token { get; set; }
     }
+
+    public class Timeout
+    {
+        public int DebtLimitSeconds { get; set; }
+        public int HeartbeatCost { get; set; }
+        public int ReportCost { get; set; }
+    }
 }
