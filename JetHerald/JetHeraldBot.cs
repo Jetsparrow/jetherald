@@ -3,10 +3,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Threading;
+using Microsoft.Extensions.Hosting;
 
 namespace JetHerald
 {
-    public partial class JetHeraldBot
+    public partial class JetHeraldBot : IHostedService
     {
         Db Db { get; set; }
         Options.Telegram TelegramConfig { get; }
@@ -29,13 +30,13 @@ namespace JetHerald
         CancellationTokenSource HeartbeatCancellation;
         Task HeartbeatTask;
 
-        public async Task Init()
+        public async Task StartAsync(CancellationToken token)
         {
             await InitTelegram();
             await InitDiscord();
         }
 
-        public async Task Stop()
+        public async Task StopAsync(CancellationToken token)
         {
             await DiscordBot.DisconnectAsync();
             TelegramBot.StopReceiving();
@@ -103,5 +104,6 @@ namespace JetHerald
             }
             catch (Exception e) { Log.LogError(e, $"Error while sending message \"{formatted}\" to {chat}"); }
         }
+
     }
 }

@@ -25,6 +25,7 @@ namespace JetHerald
             services.Configure<Options.Timeout>(Configuration.GetSection("Timeout"));
             services.AddSingleton<Db>();
             services.AddSingleton<JetHeraldBot>();
+            services.AddHostedService(s => s.GetService<JetHeraldBot>());
             services.AddSingleton<LeakyBucket>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
@@ -33,8 +34,6 @@ namespace JetHerald
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            var bot = app.ApplicationServices.GetService<JetHeraldBot>();
-            bot.Init().GetAwaiter().GetResult();
             app.UsePathBase(Configuration.GetValue<string>("PathBase"));
             if (env.IsDevelopment())
             {
