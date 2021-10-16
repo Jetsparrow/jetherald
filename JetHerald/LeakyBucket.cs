@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace JetHerald
@@ -9,10 +10,12 @@ namespace JetHerald
     {
         private readonly ConcurrentDictionary<uint, DateTime> expiryDates = new();
         private readonly Options.Timeout config;
+        private readonly ILogger log;
 
-        public LeakyBucket(IOptions<Options.Timeout> cfgOptions)
+        public LeakyBucket(IOptions<Options.Timeout> cfgOptions, ILogger<LeakyBucket> log)
         {
             config = cfgOptions.Value;
+            this.log = log;
         }
 
         public bool IsTimedOut(uint key)
@@ -20,7 +23,7 @@ namespace JetHerald
             var now = DateTime.UtcNow;
             var debtLimit = now.AddSeconds(config.DebtLimitSeconds);
             var time = expiryDates.GetValueOrDefault(key, now);
-            Console.WriteLine(time);
+            log.LogTrace("{key} had current timedebt of {time}", key, time);
             return time > debtLimit;
         }
 
