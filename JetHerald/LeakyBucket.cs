@@ -17,8 +17,9 @@ namespace JetHerald
 
         public bool IsTimedOut(uint key)
         {
-            var debtLimit = DateTime.Now.AddSeconds(config.DebtLimitSeconds);
-            var time = expiryDates.GetValueOrDefault(key, DateTime.Now);
+            var now = DateTime.UtcNow;
+            var debtLimit = now.AddSeconds(config.DebtLimitSeconds);
+            var time = expiryDates.GetValueOrDefault(key, now);
             Console.WriteLine(time);
             return time > debtLimit;
         }
@@ -26,11 +27,12 @@ namespace JetHerald
         public void ApplyCost(uint key, int cost)
         {
             expiryDates.AddOrUpdate(key,
-                key => DateTime.Now.AddSeconds(cost),
+                key => DateTime.UtcNow.AddSeconds(cost),
                 (key, oldDebt) =>
                 {
-                    if (oldDebt < DateTime.Now)
-                        return DateTime.Now.AddSeconds(cost);
+                    var now = DateTime.UtcNow;
+                    if (oldDebt < now)
+                        return now.AddSeconds(cost);
 
                     return oldDebt.AddSeconds(cost);
                 });
