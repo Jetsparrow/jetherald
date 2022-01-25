@@ -1,81 +1,77 @@
-﻿using System;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
+using JetHerald.Services;
 
-namespace JetHerald.Controllers
+namespace JetHerald.Controllers;
+[ApiController]
+public class ReportController : ControllerBase
 {
-    [ApiController]
-    public class ReportController : ControllerBase
+    Db Db { get; }
+    JetHeraldBot Herald { get; }
+    LeakyBucket Timeouts { get; }
+    Options.TimeoutConfig Config { get; }
+
+    public ReportController(Db db, JetHeraldBot herald, LeakyBucket timeouts, IOptions<Options.TimeoutConfig> cfgOptions)
     {
-        Db Db { get; }
-        JetHeraldBot Herald { get; }
-        LeakyBucket Timeouts { get; }
-        Options.Timeout Config { get; }
+        Herald = herald;
+        Timeouts = timeouts;
+        Db = db;
+        Config = cfgOptions.Value;
+    }
 
-        public ReportController(Db db, JetHeraldBot herald, LeakyBucket timeouts, IOptions<Options.Timeout> cfgOptions)
+    [Route("api/report")]
+    [HttpPost]
+    public async Task<IActionResult> Report()
+    {
+        var q = Request.Query;
+        if (q.ContainsKey("Topic")
+            && q.ContainsKey("Message")
+            && q.ContainsKey("WriteToken"))
         {
-            Herald = herald;
-            Timeouts = timeouts;
-            Db = db;
-            Config = cfgOptions.Value;
+            ReportArgs args = new();
+            args.Topic = q["Topic"];
+            args.Message = q["Message"];
+            args.WriteToken = q["WriteToken"];
+            return await DoReport(args);
         }
 
-        [Route("api/report")]
-        [HttpPost]
-        public async Task<IActionResult> Report()
+        try
         {
-            var q = Request.Query;
-            if (q.ContainsKey("Topic")
-             && q.ContainsKey("Message")
-             && q.ContainsKey("WriteToken"))
+            var args = await JsonSerializer.DeserializeAsync<ReportArgs>(HttpContext.Request.Body, new JsonSerializerOptions()
             {
-                ReportArgs args = new();
-                args.Topic = q["Topic"];
-                args.Message = q["Message"];
-                args.WriteToken = q["WriteToken"];
-                return await DoReport(args);
-            }
-
-            try
-            {
-                var args = await JsonSerializer.DeserializeAsync<ReportArgs>(HttpContext.Request.Body, new()
-                {
-                    IncludeFields = true
-                });
-                return await DoReport(args);
-            }
-            catch (JsonException)
-            {
-                return BadRequest();
-            }
+                IncludeFields = true
+            });
+            return await DoReport(args);
         }
-
-        private async Task<IActionResult> DoReport(ReportArgs args)
+        catch (JsonException)
         {
-            var t = await Db.GetTopic(args.Topic);
-            if (t == null)
-                return new NotFoundResult();
-            else if (!t.WriteToken.Equals(args.WriteToken, StringComparison.OrdinalIgnoreCase))
-                return StatusCode(403);
-
-            if (Timeouts.IsTimedOut(t.TopicId))
-                return StatusCode(StatusCodes.Status429TooManyRequests);
-
-            await Herald.PublishMessage(t, args.Message);
-
-            Timeouts.ApplyCost(t.TopicId, Config.ReportCost);
-
-            return new OkResult();
+            return BadRequest();
         }
+    }
 
-        public class ReportArgs
-        {
-            public string Topic { get; set; }
-            public string Message { get; set; }
-            public string WriteToken { get; set; }
-        }
+    private async Task<IActionResult> DoReport(ReportArgs args)
+    {
+        var t = await Db.GetTopic(args.Topic);
+        if (t == null)
+            return new NotFoundResult();
+        else if (!t.WriteToken.Equals(args.WriteToken, StringComparison.OrdinalIgnoreCase))
+            return StatusCode(403);
+
+        if (Timeouts.IsTimedOut(t.TopicId))
+            return StatusCode(StatusCodes.Status429TooManyRequests);
+
+        await Herald.PublishMessage(t, args.Message);
+
+        Timeouts.ApplyCost(t.TopicId, Config.ReportCost);
+
+        return new OkResult();
+    }
+
+    public class ReportArgs
+    {
+        public string Topic { get; set; }
+        public string Message { get; set; }
+        public string WriteToken { get; set; }
     }
 }

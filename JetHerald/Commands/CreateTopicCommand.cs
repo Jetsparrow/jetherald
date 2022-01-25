@@ -1,46 +1,44 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using MySql.Data.MySqlClient;
-using Telegram.Bot.Args;
+﻿using MySql.Data.MySqlClient;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using JetHerald.Services;
 
-namespace JetHerald.Commands
+namespace JetHerald.Commands;
+public class CreateTopicCommand : IChatCommand
 {
-    public class CreateTopicCommand : IChatCommand
+    Db Db { get; }
+
+    public CreateTopicCommand(Db db)
     {
-        readonly Db db;
+        Db = db;
+    }
 
-        public CreateTopicCommand(Db db)
+    public async Task<string> Execute(CommandString cmd, Update update)
+    {
+        if (cmd.Parameters.Length < 1)
+            return null;
+        var msg = update.Message;
+
+        if (msg.Chat.Type != ChatType.Private)
+            return null;
+
+        string name = cmd.Parameters[0];
+        string descr = name;
+        if (cmd.Parameters.Length > 1)
+            descr = string.Join(' ', cmd.Parameters.Skip(1));
+
+        try
         {
-            this.db = db;
+            var topic = await Db.CreateTopic(NamespacedId.Telegram(msg.From.Id), name, descr);
+            return $"created {topic.Name}\n" +
+                $"readToken\n{topic.ReadToken}\n" +
+                $"writeToken\n{topic.WriteToken}\n" +
+                $"adminToken\n{topic.AdminToken}\n";
         }
-
-        public async Task<string> Execute(CommandString cmd, MessageEventArgs messageEventArgs)
+        catch (MySqlException myDuplicate) when (myDuplicate.Number == 1062)
         {
-            if (cmd.Parameters.Length < 1)
-                return null;
-            var msg = messageEventArgs.Message;
-
-            if (msg.Chat.Type != ChatType.Private)
-                return null;
-
-            string name = cmd.Parameters[0];
-            string descr = name;
-            if (cmd.Parameters.Length > 1)
-                descr = string.Join(' ', cmd.Parameters.Skip(1));
-
-            try
-            {
-                var topic = await db.CreateTopic(NamespacedId.Telegram(msg.From.Id), name, descr);
-                return $"created {topic.Name}\n" +
-                    $"readToken\n{topic.ReadToken}\n" +
-                    $"writeToken\n{topic.WriteToken}\n" +
-                    $"adminToken\n{topic.AdminToken}\n";
-            }
-            catch (MySqlException myDuplicate) when (myDuplicate.Number == 1062)
-            {
-                return $"topic {name} already exists";
-            }
+            return $"topic {name} already exists";
         }
     }
 }
+

@@ -1,37 +1,35 @@
-﻿using System.Threading.Tasks;
-using Telegram.Bot;
-using Telegram.Bot.Args;
+﻿using Telegram.Bot;
+using Telegram.Bot.Types;
+using JetHerald.Services;
 
-namespace JetHerald.Commands
+namespace JetHerald.Commands;
+public class UnsubscribeCommand : IChatCommand
 {
-    public class UnsubscribeCommand : IChatCommand
+    Db Db { get; }
+    TelegramBotClient Bot { get; }
+
+    public UnsubscribeCommand(Db db, TelegramBotClient bot)
     {
-        readonly Db db;
-        readonly TelegramBotClient bot;
+        Db = db;
+        Bot = bot;
+    }
 
-        public UnsubscribeCommand(Db db, TelegramBotClient bot)
-        {
-            this.db = db;
-            this.bot = bot;
-        }
+    public async Task<string> Execute(CommandString cmd, Update update)
+    {
+        if (cmd.Parameters.Length < 1)
+            return null;
 
-        public async Task<string> Execute(CommandString cmd, MessageEventArgs messageEventArgs)
-        {
-            if (cmd.Parameters.Length < 1)
-                return null;
+        if (!await CommandHelper.CheckAdministrator(Bot, update.Message))
+            return null;
 
-            if (!await CommandHelper.CheckAdministrator(bot, messageEventArgs.Message))
-                return null;
+        var msg = update.Message;
+        var chat = NamespacedId.Telegram(msg.Chat.Id);
 
-            var msg = messageEventArgs.Message;
-            var chat = NamespacedId.Telegram(msg.Chat.Id);
-
-            var topicName = cmd.Parameters[0];
-            int affected = await db.RemoveSubscription(topicName, chat);
-            if (affected >= 1)
-                return $"unsubscribed from {topicName}";
-            else
-                return $"could not find subscription for {topicName}";
-        }
+        var topicName = cmd.Parameters[0];
+        int affected = await Db.RemoveSubscription(topicName, chat);
+        if (affected >= 1)
+            return $"unsubscribed from {topicName}";
+        else
+            return $"could not find subscription for {topicName}";
     }
 }

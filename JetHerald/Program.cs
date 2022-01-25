@@ -1,51 +1,73 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using NLog.Web;
+using JetHerald;
+using JetHerald.Options;
+using JetHerald.Services;
 
-namespace JetHerald
+var log =
+#if DEBUG
+NLogBuilder.ConfigureNLog("nlog.debug.config").GetCurrentClassLogger();
+#else
+NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+#endif
+
+try
 {
-    public class Program
+    log.Info("init main");
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    builder.WebHost.ConfigureAppConfiguration((hostingContext, config) =>
     {
-        public static void Main(string[] args)
-        {
-            DapperConverters.Register();
+        config.SetBasePath(Directory.GetCurrentDirectory());
+        config.AddIniFile("secrets.ini",
+            optional: true, reloadOnChange: true);
+        config.AddIniFile($"secrets.{hostingContext.HostingEnvironment.EnvironmentName}.ini",
+            optional: true, reloadOnChange: true);
+        config.AddJsonFile("secrets.json", optional: true, reloadOnChange: true);
+        config.AddJsonFile($"secrets.{hostingContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+    });
 
-            var logger = NLog.Web.NLogBuilder.ConfigureNLog("NLog.config").GetCurrentClassLogger();
-            try
-            {
-                logger.Debug("init main");
-                CreateWebHostBuilder(args).Build().Run();
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "Stopped program because of exception");
-                throw;
-            }
-            finally
-            {
-                NLog.LogManager.Shutdown();
-            }
-        }
+    builder.Logging.ClearProviders();
+    builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+    builder.Host.UseNLog();
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .ConfigureAppConfiguration(config =>
-                {
-                    config.AddIniFile("secrets.ini");
-                })
-                .ConfigureLogging(logging =>
-                {
-                    logging.ClearProviders();
-                    logging.SetMinimumLevel(LogLevel.Trace);
-                })
-                .UseNLog();  // NLog: setup NLog for Dependency injection
-    }
+    var cfg = builder.Configuration;
+    var services = builder.Services;
+
+    services.Configure<ConnectionStrings>(cfg.GetSection("ConnectionStrings"));
+    services.Configure<JetHerald.Options.TelegramConfig>(cfg.GetSection("Telegram"));
+    services.Configure<DiscordConfig>(cfg.GetSection("Discord"));
+    services.Configure<TimeoutConfig>(cfg.GetSection("Timeout"));
+    services.AddSingleton<Db>();
+    services.AddSingleton<JetHeraldBot>().AddHostedService(s => s.GetService<JetHeraldBot>());
+    services.AddSingleton<LeakyBucket>();
+    services.AddMvc();
+
+
+    var app = builder.Build();
+    app.UsePathBase(cfg.GetValue<string>("PathBase"));
+    app.UseDeveloperExceptionPage();
+    app.UseHsts();
+    app.UseHttpsRedirection();
+    app.UseStaticFiles();
+    app.UseRouting();
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapControllers();
+    });
+    app.Run();
+}
+catch (Exception exception)
+{
+    log.Error(exception, "Error while starting up");
+    throw;
+}
+finally
+{
+    // Ensure to flush and stop internal timers/threads before application-exit (Avoid segmentation fault on Linux)
+    NLog.LogManager.Shutdown();
 }

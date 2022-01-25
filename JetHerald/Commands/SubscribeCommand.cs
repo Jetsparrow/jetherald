@@ -1,44 +1,42 @@
-﻿using System.Threading.Tasks;
-using Telegram.Bot;
-using Telegram.Bot.Args;
+﻿using Telegram.Bot;
+using Telegram.Bot.Types;
+using JetHerald.Services;
 
-namespace JetHerald.Commands
+namespace JetHerald.Commands;
+public class SubscribeCommand : IChatCommand
 {
-    public class SubscribeCommand : IChatCommand
+    Db Db { get; }
+    TelegramBotClient Bot { get; }
+
+    public SubscribeCommand(Db db, TelegramBotClient bot)
     {
-        readonly Db db;
-        readonly TelegramBotClient bot;
+        Db = db;
+        Bot = bot;
+    }
 
-        public SubscribeCommand(Db db, TelegramBotClient bot)
+    public async Task<string> Execute(CommandString cmd, Update args)
+    {
+        if (cmd.Parameters.Length < 1)
+            return null;
+
+        if (!await CommandHelper.CheckAdministrator(Bot, args.Message))
+            return null;
+
+        var chat = NamespacedId.Telegram(args.Message.Chat.Id);
+        var token = cmd.Parameters[0];
+
+        var topic = await Db.GetTopicForSub(token, chat);
+
+        if (topic == null)
+            return "topic not found";
+        else if (topic.Sub == chat)
+            return $"already subscribed to {topic.Name}";
+        else if (topic.ReadToken != token)
+            return "token mismatch";
+        else
         {
-            this.db = db;
-            this.bot = bot;
-        }
-
-        public async Task<string> Execute(CommandString cmd, MessageEventArgs args)
-        {
-            if (cmd.Parameters.Length < 1)
-                return null;
-
-            if (!await CommandHelper.CheckAdministrator(bot, args.Message))
-                return null;
-
-            var chat = NamespacedId.Telegram(args.Message.Chat.Id);
-            var token = cmd.Parameters[0];
-
-            var topic = await db.GetTopicForSub(token, chat);
-
-            if (topic == null)
-                return "topic not found";
-            else if (topic.Chat == chat)
-                return $"already subscribed to {topic.Name}";
-            else if (topic.ReadToken != token)
-                return "token mismatch";
-            else
-            {
-                await db.CreateSubscription(topic.TopicId, chat);
-                return $"subscribed to {topic.Name}";
-            }
+            await Db.CreateSubscription(topic.TopicId, chat);
+            return $"subscribed to {topic.Name}";
         }
     }
 }
