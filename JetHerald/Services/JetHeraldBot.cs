@@ -42,12 +42,6 @@ public partial class JetHeraldBot : IHostedService
         await StopTelegram();
     }
 
-    public Task HeartbeatReceived(Topic topic, string heart)
-        => BroadcastMessageRaw(topic.TopicId, $"!{topic.Description}!:\nHeart \"{heart}\" has started beating.");
-
-    public Task PublishMessage(Topic topic, string message)
-        => BroadcastMessageRaw(topic.TopicId, $"|{topic.Description}|:\n{message}");
-
     public async Task BroadcastMessageRaw(uint topicId, string formatted)
     {
         var chatIds = await Db.GetSubsForTopic(topicId);

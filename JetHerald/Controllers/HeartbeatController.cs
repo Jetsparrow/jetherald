@@ -77,7 +77,7 @@ public class HeartbeatController : ControllerBase
         var affected = await Db.ReportHeartbeat(t.TopicId, heart, args.ExpiryTimeout);
 
         if (affected == 1)
-            await Herald.HeartbeatReceived(t, heart);
+            await Herald.BroadcastMessageRaw(t.TopicId, $"!{t.Description}!:\nHeart \"{heart}\" has started beating at {DateTime.UtcNow:0}");
 
         Timeouts.ApplyCost(t.TopicId, Config.HeartbeatCost);
 

@@ -61,7 +61,7 @@ public class ReportController : ControllerBase
         if (Timeouts.IsTimedOut(t.TopicId))
             return StatusCode(StatusCodes.Status429TooManyRequests);
 
-        await Herald.PublishMessage(t, args.Message);
+        await Herald.BroadcastMessageRaw(t.TopicId, $"|{t.Description}|:\n{args.Message}");
 
         Timeouts.ApplyCost(t.TopicId, Config.ReportCost);
 
