@@ -104,15 +104,7 @@ public class Db
     {
         using var c = GetConnection();
         return await c.ExecuteAsync(
-            @"
-                INSERT INTO heart
-	                (TopicId, Heart, Status, ExpiryTs)
-	            VALUES
-	                (@topicId, @heart, 'beating', CURRENT_TIMESTAMP() + INTERVAL @timeoutSeconds SECOND)
-                ON DUPLICATE KEY UPDATE
-                    Status = 'beating',
-                    ExpiryTs = CURRENT_TIMESTAMP() + INTERVAL @timeoutSeconds SECOND;
-            ",
+            @"CALL report_heartbeat(@topicId, @heart, @timeoutSeconds);",
             new { topicId, heart, timeoutSeconds });
     }
 
