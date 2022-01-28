@@ -29,7 +29,7 @@ public class HeartMonitor : BackgroundService
                 {
                     await Herald.BroadcastMessageRaw(
                         a.TopicId,
-                        $"!{a.Description}!:\nHeart \"{a.Heart}\" stopped beating at {a.CreateTs}");
+                        $"!{a.Description}!:\nHeart \"{a.Heart}\" stopped beating at {a.CreateTs:O}");
 
                     await Db.MarkHeartAttackReported(a.HeartEventId);
                     
