@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NLog.Web;
@@ -17,6 +16,8 @@ NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
 try
 {
     log.Info("init main");
+
+    DapperConverters.Register();
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +46,7 @@ try
     services.AddSingleton<Db>();
     services.AddSingleton<JetHeraldBot>().AddHostedService(s => s.GetService<JetHeraldBot>());
     services.AddSingleton<LeakyBucket>();
+    services.AddHostedService<HeartMonitor>();
     services.AddMvc();
 
 

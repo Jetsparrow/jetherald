@@ -26,15 +26,15 @@ public class Db
             new { name });
     }
 
-    public async Task<Topic> GetTopicForSub(string token, NamespacedId chat)
+    public async Task<Topic> GetTopicForSub(string token, NamespacedId sub)
     {
         using var c = GetConnection();
         return await c.QuerySingleOrDefaultAsync<Topic>(
             " SELECT t.*, ts.Sub " +
             " FROM topic t " +
-            " LEFT JOIN topic_sub ts ON t.TopicId = ts.TopicId AND ts.Chat = @chat " +
+            " LEFT JOIN topic_sub ts ON t.TopicId = ts.TopicId AND ts.Sub = @sub " +
             " WHERE ReadToken = @token",
-            new { token, chat });
+            new { token, sub });
     }
 
     public async Task<Topic> CreateTopic(NamespacedId user, string name, string descr)
@@ -95,7 +95,7 @@ public class Db
             " DELETE ts " +
             " FROM topic_sub ts" +
             " JOIN topic t USING (TopicId) " +
-            " WHERE t.Name = @topicName AND tc.Sub = @sub;",
+            " WHERE t.Name = @topicName AND ts.Sub = @sub;",
             new { topicName, sub });
     }
 
@@ -125,7 +125,7 @@ public class Db
     public async Task MarkHeartAttackReported(ulong id)
     {
         using var c = GetConnection();
-        await c.ExecuteAsync("UPDATE heartevent SET Status = 'reported' WHERE HeartattackId = @id", new { id });
+        await c.ExecuteAsync("UPDATE heartevent SET Status = 'reported' WHERE HeartEventId = @id", new { id });
     }
 
     public Db(IOptionsMonitor<ConnectionStrings> cfg)
