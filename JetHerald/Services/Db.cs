@@ -103,7 +103,7 @@ public class Db
     public async Task<int> ReportHeartbeat(uint topicId, string heart, int timeoutSeconds)
     {
         using var c = GetConnection();
-        return await c.ExecuteAsync(
+        return await c.QueryFirstAsync<int>(
             @"CALL report_heartbeat(@topicId, @heart, @timeoutSeconds);",
             new { topicId, heart, timeoutSeconds });
     }
