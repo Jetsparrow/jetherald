@@ -98,6 +98,85 @@ CREATE TABLE `topic_sub` (
   CONSTRAINT `FK_TOPICID` FOREIGN KEY (`TopicId`) REFERENCES `topic` (`TopicId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping events for database 'herald'
+--
+
+--
+-- Dumping routines for database 'herald'
+--
+/*!50003 DROP PROCEDURE IF EXISTS `process_hearts` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE PROCEDURE `process_hearts`()
+BEGIN
+
+START TRANSACTION;
+
+	SET @ts = NOW();
+    
+	INSERT INTO heartevent
+		(TopicId, Heart, `Event`)
+	SELECT 
+		TopicId, Heart, 'stopped'
+	FROM heart
+    WHERE ExpiryTs < @ts AND `Status` = 'beating';
+	
+	UPDATE heart SET `Status` = 'stopped' WHERE ExpiryTs < @ts AND `Status` = 'beating' AND HeartId > 0;
+    
+    SET @id = (SELECT HeartEventId FROM heartevent WHERE `Status` = 'created' ORDER BY HeartEventId DESC LIMIT 1);
+	UPDATE heartevent SET `Status` = 'processing' WHERE HeartEventId = @id;
+    SELECT ha.*, t.`Description`
+		FROM heartevent ha 
+		JOIN topic t USING (TopicId) 
+		WHERE HeartEventId = @id;
+
+COMMIT;
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `report_heartbeat` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE PROCEDURE `report_heartbeat`(_topicId INT UNSIGNED, _heart VARCHAR(45), _timeoutSeconds INTEGER UNSIGNED)
+BEGIN
+DECLARE beating INTEGER DEFAULT 0; 
+START TRANSACTION;
+	SET beating = EXISTS(SELECT * FROM heart WHERE TopicId = _topicId AND Heart = _heart AND `Status` = `beating`); 
+	INSERT INTO heart
+		(TopicId, Heart, `Status`, ExpiryTs)
+	VALUES
+		(_topicId, _heart, 'beating', CURRENT_TIMESTAMP() + INTERVAL _timeoutSeconds SECOND)
+	ON DUPLICATE KEY UPDATE
+		`Status` = 'beating',
+		ExpiryTs = CURRENT_TIMESTAMP() + INTERVAL _timeoutSeconds SECOND;
+	SELECT beating;
+COMMIT;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -108,4 +187,4 @@ CREATE TABLE `topic_sub` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-01-28 16:35:26
+-- Dump completed on 2022-01-28 17:03:44
