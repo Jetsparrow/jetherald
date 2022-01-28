@@ -41,5 +41,9 @@ Thumbs.db
 *.dotCover
 
 #secret config
-karma.cfg.json
+*secrets.json
+*secrets.Production.json
 *secrets.ini
+*secrets.Production.ini
+
+JetHerald/Properties/PublishProfiles/FolderProfile.pubxml
