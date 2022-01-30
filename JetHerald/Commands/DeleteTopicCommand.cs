@@ -14,7 +14,7 @@ public class DeleteTopicCommand : IChatCommand
 
     public async Task<string> Execute(CommandString cmd, Update update)
     {
-        if (cmd.Parameters.Length < 2)
+        if (cmd.Parameters.Length < 1)
             return null;
         var msg = update.Message;
 
@@ -22,13 +22,16 @@ public class DeleteTopicCommand : IChatCommand
             return null;
 
         string name = cmd.Parameters[0];
-        string adminToken = cmd.Parameters[1];
 
-        var changed = await Db.DeleteTopic(name, adminToken);
+        var user = await Db.GetUser(NamespacedId.Telegram(msg.From.Id));
+
+        if (user == null) return null;
+
+        var changed = await Db.DeleteTopic(name, user.UserId);
         if (changed > 0)
-            return ($"deleted {name} and all its subscriptions");
+            return $"deleted {name} and all its subscriptions";
         else
-            return ($"invalid topic name or admin token");
+            return $"invalid topic name";
     }
 }
 

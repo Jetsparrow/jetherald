@@ -6,14 +6,15 @@ using JetHerald.Contracts;
 namespace JetHerald.Services;
 public class Db
 {
-    public async Task<int> DeleteTopic(string name, string adminToken)
+    public async Task<int> DeleteTopic(string name, uint userId)
     {
         using var c = GetConnection();
         return await c.ExecuteAsync(
-            " DELETE" +
-            " FROM topic" +
-            " WHERE Name = @name AND AdminToken = @adminToken",
-            new { name, adminToken });
+            " DELETE t" +
+            " FROM topic t" +
+            " LEFT JOIN user u ON t.CreatorId = u.UserId" +
+            " WHERE t.Name = @name AND u.UserId = @userId",
+            new { name, userId });
     }
 
     public async Task<Topic> GetTopic(string name)
@@ -37,24 +38,59 @@ public class Db
             new { token, sub });
     }
 
-    public async Task<Topic> CreateTopic(NamespacedId user, string name, string descr)
+    public async Task<User> GetUser(NamespacedId foreignId)
     {
         using var c = GetConnection();
-        return await c.QuerySingleOrDefaultAsync<Topic>(
+        return await c.QuerySingleOrDefaultAsync<User>(
+            " SELECT u.*, p.* " +
+            " FROM user u " +
+            " LEFT JOIN plan p ON p.PlanId = u.PlanId " +
+            " WHERE u.ForeignId = @foreignId",
+            new { foreignId });
+    }
+
+    public async Task<Topic> CreateTopic(uint user, string name, string descr)
+    {
+        using var c = GetConnection();
+
+        await c.OpenAsync();
+
+        await using var tx = await c.BeginTransactionAsync();
+
+        var topicsCount = await c.QuerySingleAsync<int>(
+            " SELECT COUNT(t.TopicId) " +
+            " FROM user u " +
+            " LEFT JOIN topic t ON t.CreatorId = u.UserId ",
+            transaction: tx
+        );
+
+        var planTopicsCount = await c.QuerySingleAsync<int>(
+            " SELECT p.MaxTopics " +
+            " FROM user u " +
+            " LEFT JOIN plan p ON p.PlanId = u.PlanId ",
+            transaction: tx
+        );
+
+        if (topicsCount >= planTopicsCount) return null;
+
+        var topic = await c.QuerySingleOrDefaultAsync<Topic>(
             " INSERT INTO topic " +
-            " ( Creator,  Name,  Description,  ReadToken,  WriteToken,  AdminToken) " +
+            " ( CreatorId,  Name,  Description,  ReadToken,  WriteToken) " +
             " VALUES " +
-            " (@Creator, @Name, @Description, @ReadToken, @WriteToken, @AdminToken); " +
+            " (@CreatorId, @Name, @Description, @ReadToken, @WriteToken); " +
             " SELECT * FROM topic WHERE TopicId = LAST_INSERT_ID(); ",
             new Topic
             {
-                Creator = user,
+                CreatorId = user,
                 Name = name,
                 Description = descr,
                 ReadToken = TokenHelper.GetToken(),
-                WriteToken = TokenHelper.GetToken(),
-                AdminToken = TokenHelper.GetToken()
-            });
+                WriteToken = TokenHelper.GetToken()
+            }, transaction: tx);
+
+        await tx.CommitAsync();
+
+        return topic;
     }
     public async Task<IEnumerable<NamespacedId>> GetSubsForTopic(uint topicId)
     {

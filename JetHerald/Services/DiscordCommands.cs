@@ -24,13 +24,24 @@ public class DiscordCommands : BaseCommandModule
 
         _ = ctx.TriggerTypingAsync();
 
+        var user = await Db.GetUser(NamespacedId.Discord(ctx.User.Id));
+
+        if (user == null) return;
+
         try
         {
-            var topic = await Db.CreateTopic(NamespacedId.Discord(ctx.User.Id), name, description);
-            await ctx.RespondAsync($"created {topic.Name}\n" +
-                $"readToken\n{topic.ReadToken}\n" +
-                $"writeToken\n{topic.WriteToken}\n" +
-                $"adminToken\n{topic.AdminToken}\n");
+            var topic = await Db.CreateTopic(user.UserId, name, description);
+
+            if (topic == null)
+            {
+                await ctx.RespondAsync("you have reached the limit of topics");
+            }
+            else
+            {
+                await ctx.RespondAsync($"created {topic.Name}\n" +
+                    $"readToken\n{topic.ReadToken}\n" +
+                    $"writeToken\n{topic.WriteToken}\n");
+            }
         }
         catch (MySqlException myDuplicate) when (myDuplicate.Number == 1062)
         {
@@ -44,16 +55,19 @@ public class DiscordCommands : BaseCommandModule
     public async Task DeleteTopic(
         CommandContext ctx,
         [Description("The name of the topic to be deleted.")]
-        string name,
-        [Description("The admin token of the topic to be deleted.")]
-        string adminToken)
+        string name)
     {
         _ = ctx.TriggerTypingAsync();
-        var changed = await Db.DeleteTopic(name, adminToken);
+
+        var user = await Db.GetUser(NamespacedId.Discord(ctx.User.Id));
+
+        if (user == null) return;
+
+        var changed = await Db.DeleteTopic(name, user.UserId);
         if (changed > 0)
             await ctx.RespondAsync($"deleted {name} and all its subscriptions");
         else
-            await ctx.RespondAsync($"invalid topic name or admin token");
+            await ctx.RespondAsync($"invalid topic name");
     }
 
     [Command("list")]
