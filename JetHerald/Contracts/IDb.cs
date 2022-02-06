@@ -15,6 +15,17 @@ public class Topic
         => Name == Description ? Name : $"{Name}: {Description}";
 }
 
+public class Heart
+{
+    public uint HeartId { get; set; }
+    public uint TopicId { get; set; }
+    public string Name { get; set; }
+    public string Status { get; set; }
+    public DateTime LastBeatTs { get; set; }
+    public DateTime ExpiryTs { get; set; }
+    public DateTime CreateTs { get; set; }
+}
+
 public class HeartEvent
 {
     public ulong HeartEventId { get; set; }
@@ -28,9 +39,40 @@ public class HeartEvent
 public class User
 {
     public uint UserId { get; set; }
-    public NamespacedId? ForeignId { get; set; }
+    public string Login { get; set; }
+    public string Name { get; set; }
+    public byte[] PasswordHash { get; set; }
+    public byte[] PasswordSalt { get; set; }
+    public int HashType { get; set; }
     public uint PlanId { get; set; }
 
+    public string Allow { get; set; }
+   
     public int? MaxTopics { get; set; }
     public int? TimeoutMultiplier { get; set; }
+
+    public DateTime CreateTs { get; set; }
+}
+public class UserInvite
+{
+    public uint UserInviteId { get; set; }
+    public string InviteCode { get; set; }
+    public uint PlanId { get; set; }
+    public uint RedeemedBy { get; set; }
+}
+
+public class UserSession
+{
+    public string SessionId { get; set; }
+    public byte[] SessionData { get; set; }
+    public DateTime ExpiryTs { get; set; }
+}
+
+public class Plan
+{
+    public uint PlanId { get; set; }
+    public string Name { get; set; }
+    public int MaxTopics { get; set; }
+    public double TimeoutMultiplier { get; set; }
+    public string Allow { get; set; }
 }

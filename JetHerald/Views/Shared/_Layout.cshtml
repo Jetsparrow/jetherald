@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>JetHerald</title>
+    <link rel="stylesheet" href="~/css/global.css" />
+    @RenderSection("Stylesheets", required: false)
+</head>
+<body>
+    <header class="flex-container">
+        <div class="inner-element">
+            <div class="helper">
+                <nav>
+
+                    <div class="helper">
+                        <img src="~/img/PB.svg" alt="PBug" class="logo" width="32" height="32">
+                    </div>
+                    @if (Context.UserCan("dashboard"))
+                    {
+                        <a asp-action="Index" asp-controller="Dashboard">Dashboard</a>
+                    }
+                    @if (Context.UserCan("admintools"))
+                    {
+                        <a asp-action="Index" asp-controller="AdminTools">Admin tools</a>
+                    }
+                    @if (User.IsAnonymous())
+                    {
+                        <a asp-action="Login" asp-controller="Login">Login</a>
+                        <a asp-action="Register" asp-controller="Registration">Register</a>
+                    }
+                    else
+                    {
+                        <a asp-action="LogOut" asp-controller="Login">Log Out</a>
+                    }
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="page-main">
+        @RenderBody()
+    </div>
+
+    <footer>
+        Rendered in @(Context.Features.Get<RequestTimeFeature>().Stopwatch.Elapsed.TotalMilliseconds) ms
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

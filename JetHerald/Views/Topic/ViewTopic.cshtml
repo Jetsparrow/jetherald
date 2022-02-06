@@ -1,0 +1,30 @@
+﻿@model TopicViewModel
+@Html.ValidationSummary(false, "", new {})
+<p>
+    @{var topic = @Model.Topic;}
+    <p>
+        <span>@topic.Name</span>
+        <br>
+        <span>ReadToken: @topic.ReadToken</span>
+        <br>
+        <span>WriteToken: @topic.WriteToken</span>
+        <br>
+
+        @if (@Model.Hearts.Any())
+        {
+            <table>
+                <tr><th>Heart</th> <th>Last beat</th> <th>Expires on</th></tr>
+                @foreach (var heart in @Model.Hearts)
+                {
+                    <tr> 
+                        <td>@heart.Name </td> <td>@heart.LastBeatTs</td> <td>@heart.ExpiryTs</td>
+                    </tr>
+                        
+                }
+            </table>
+            <br>
+        }
+            
+
+    </p>
+</p>

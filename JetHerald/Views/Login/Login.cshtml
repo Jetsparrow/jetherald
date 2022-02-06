@@ -1,0 +1,18 @@
+@Html.ValidationSummary(false, "", new {})
+<form
+    asp-controller="Login" asp-action="Login"
+    asp-route-redirect="@ViewData["RedirectTo"]"
+    method="POST" type="application/x-www-form-urlencoded"
+    style="text-align:center; margin-top: 100px">
+    
+    <input type="text" class="h2 blueunderline" name="username" placeholder="Username" required>
+    <br>
+    <br>
+    <input type="password" class="h2 blueunderline" name="password" placeholder="Password" required>
+    <br>
+    <br>
+    <input type="submit" class="h2 submitpost" value="Login">
+    <br>
+    <br>
+    <span style="color:#05b">Don't have an account? <a asp-controller="Registration" asp-action="Register">Register</a></span>
+</form>

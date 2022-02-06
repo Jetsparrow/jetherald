@@ -1,0 +1,40 @@
+@Html.ValidationSummary(false, "", new {})
+
+<form method="POST" asp-action="Register" asp-controller="Registration"
+    class="register-grid" type="application/x-www-form-urlencoded"
+    asp-route-redirect="@ViewData["RedirectTo"]" >
+
+    <img id="inviteresult" class="icon valcol inviteidrow">
+    <input type="text" name="invitecode" placeholder="Invite code" id="invitetb"
+        class="h2 blueunderline fieldcol inviteidrow" autocomplete="off"
+        value="@(Context.Request.Query.ContainsKey("invite") ? Context.Request.Query["invite"].Last() : "")">
+    <div class="infocol inviteidrow">
+        Invite code supplied by admin.
+    </div>
+    <br>
+    <img id="nameresult" class="icon valcol namerow">
+    <input type="text" class="h2 blueunderline fieldcol namerow" id="nametb" name="name" placeholder="Organization name" minlength="6" maxlength="100">
+    <div class="infocol namerow">
+        Used for display.
+        <br>
+        You can change it later.
+    </div>
+    <br>
+    <img id="loginresult" class="icon valcol loginrow">
+    <input type="text" class="h2 blueunderline fieldcol loginrow" id="logintb" name="login" placeholder="Login" minlength="3" maxlength="64">
+    <div class="infocol loginrow">
+        Used for signing in and in the
+        <br>
+        address of your organization page.
+    </div>
+    <br>
+    <img id="passresult" class="icon valcol passrow">    
+    <input type="password" class="h2 blueunderline fieldcol passrow" id="passtb" name="password" placeholder="Passphrase" minlength="6" maxlength="1024">
+    <div class="infocol passrow">
+        6-1024 characters.
+        <br>
+        You know how to make a strong password, right?
+    </div>
+    <br>
+    <input type="submit" class="h2 submitpost fieldcol buttonrow" value="Register" style="margin-top:10px; justify-self: center;">
+</form>

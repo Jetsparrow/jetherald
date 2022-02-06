@@ -1,0 +1,465 @@
+body {
+	line-height: 1.6;
+	font-size: 16px;
+	font-family: sans-serif;
+	color: #222;
+	margin: 0;
+	background-color: #fafaff;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	color: #059;
+	line-height: 1.2;
+	margin: 0 10px;
+	font-family: tahoma, sans-serif;
+}
+
+.entry {
+	padding: 10px 10px;
+	font-size: 14px;
+	font-family: monospace;
+}
+
+ul.postlist {
+	list-style-type: none;
+	padding-left: 0px;
+	padding-right: 0px;
+	width: 100%;
+}
+
+ul.postlist > li:nth-child(odd) {
+	background-color: #f0f0ff;
+}
+
+ul.postlist li:target {
+	border: #059 solid 1px;
+}
+
+header {
+	background-color: #059;
+	padding: 10px 0px 10px 0px;
+	font-size: 18px;
+	width: 100%;
+	font-family: tahoma, sans-serif;
+}
+
+nav {
+	display: inline-block;
+}
+
+.flex-container {
+	display: -webkit-box;
+	/* OLD - iOS 6-, Safari 3.1-6, BB7 */
+	display: -ms-flexbox;
+	/* TWEENER - IE 10 */
+	display: -webkit-flex;
+	/* NEW - Safari 6.1+. iOS 7.1+, BB10 */
+	display: flex;
+	/* NEW, Spec - Firefox, Chrome, Opera */
+	justify-content: center;
+	align-items: center;
+}
+
+.inner-element {
+	display: inline-block;
+	width: 750px;
+}
+
+.helper {
+	display: inline-block;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.helper>img {
+	vertical-align: middle;
+}
+
+span.assigneetext {
+	color: black;
+}
+
+div.page-main {
+	max-width: 750px;
+	margin: auto;
+	margin-top: 20px;
+}
+
+.issues-list {
+	list-style-type: none;
+	padding-left: 0;
+	width: 100%;
+}
+
+.issues-list a {
+	display: block;
+	color: #222;
+}
+
+.issues-list li {
+	padding: 5px;
+	padding-left: 10px;
+	margin: 5px;
+}
+
+.files-list {
+	list-style-type: none;
+	padding-left: 0;
+	width: 100%;
+}
+
+.files-list a {
+	display: block;
+	color: #222;
+}
+
+.files-list li {
+	padding: 5px;
+	padding-left: 10px;
+	margin: 5px;
+}
+
+.issue-tag {
+	font-size: 12px;
+	font-family: tahoma, sans-serif;
+	color: #059;
+	margin-bottom: -5px;
+}
+
+.issues-list li:nth-child(odd) {
+	background: #f0f0ff;
+}
+
+.issues-list li:hover {
+	background: #fff;
+}
+
+nav {
+	color: #eef;
+}
+
+nav>a {
+	color: #eef;
+	padding: 5px;
+	padding-right: 10px;
+	padding-left: 10px;
+}
+
+nav>a:hover {
+	background-color: #036;
+	color: #fff;
+}
+
+.entry {
+	font-family: tahoma, sans-serif;
+}
+
+.entry .date, .entry .from {
+	font-size: 10px;
+	color: #059;
+}
+
+.entry .from .issue {
+	color: #222;
+}
+
+.entry .username {
+	font-size: 18px;
+}
+
+.entry .activitytag {
+	font-size: 10px;
+	color: green;
+}
+
+textarea.submit-text {
+	width: 100%;
+	min-width: 100%;
+	max-width: 100%;
+	height: 10em;
+	border-style: none;
+	background-color: #f0f0ff;
+}
+
+input.title-input {
+	width: 100%;
+	border-style: none;
+	background-color: #fafaff;
+	font-size: 1.5em;
+}
+
+.searchbox
+{
+	margin-left:auto;
+	margin-right:auto;
+	width: 80%;
+	overflow:auto;
+	height: auto;
+	display: block;
+}
+
+.search {
+	resize: vertical;
+	float: left;
+	height: auto;
+	width: calc(100% - 36px);
+	border-color: #059;
+	border-style: solid;
+	border-width: 0 0 2px 0;
+	background: none;
+	font-size: 1.5em;
+}
+
+.buttonlink {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font:inherit;
+	padding: 0;
+}
+
+form.linkform {
+	display:inline;
+}
+
+input.submit-search {
+	float: right;
+	background-size: contain !important;
+    cursor:pointer;
+	border: none;
+	width: 32px;
+	height:32px;
+	font-size: 0px;
+}
+
+input.submitpost {
+	background-color: #059;
+	color: white;
+	border: none;
+	width: 6em;
+	height: 1.5em;
+}
+
+.underpanel {
+	font-size: 16px;
+	color: black;
+	padding-left: 15px;
+}
+
+.underpanel>a, .underpanel .buttonlink {
+	color: #059;
+	padding: 5px;
+}
+
+.underpanel>a:hover, .underpanel .buttonlink:hover {
+	background-color: #036;
+	color: #fff;
+}
+
+div.comment-underpanel {
+	font-size: 10px;
+	color: black;
+	padding-left: 15px;
+}
+
+
+span.tag a,
+span.tag {
+	/* background-color: white; */
+	color: gray;
+}
+
+span.tag:hover,
+span.tag:hover a {
+	background-color: black;
+	color: white
+}
+
+span.issue-closed-marker {
+	color: green;
+}
+
+span.issue-closed-marker {
+	color: blue;
+}
+
+span.issue-wontfix-marker {
+	color: darkgreen;
+}
+
+span.issue-open-marker {
+	color: red;
+}
+
+.blue {
+	color:#059;
+}
+
+.issue-name {
+	margin-top: 5px;
+	margin-left: 0px;
+	margin-bottom: 5px;
+	color: black;
+	font-weight: normal;
+}
+
+div.taglist {
+	margin-top: 10px;
+}
+
+hr {
+	border-color: #05b;
+	border-width: 0px 0px 2px;
+	margin: 0px;
+}
+
+a {
+	text-decoration: none;
+}
+
+footer {
+	padding-top: 25px;
+	text-align: center;
+	color: #059;
+}
+
+label {
+	color: #05b;
+}
+
+.blueunderline {
+	border-top: 0px;
+	border-left: 0px;
+	border-right: 0px;
+	border-bottom-width: 2px;
+	border-color: #05b;
+	background-color: #fafaff;
+}
+
+.h2 {
+	font-size: 1.5em;
+}
+
+.register-grid {
+	display: grid;
+	grid-template-columns: [val] 100px [fields] 300px [info] 300px [end-col];
+	grid-template-rows: [inviteid] auto [name] auto [login] auto [pass] auto [btn] auto [end-row];
+	column-gap: 15px;
+	row-gap: 25px;
+	text-align: center;
+	margin-top: 100px;
+}
+
+.changepassword-grid {
+	display: grid;
+	grid-template-columns: [val] 100px [fields] 300px [end-col];
+	grid-template-rows: [currentpassword] auto [newpassword] auto [btn] auto [end-row];
+	column-gap: 15px;
+	row-gap: 25px;
+	text-align: center;
+	margin-top: 100px;
+}
+
+.valcol {
+	grid-column: val;
+	justify-self: end;
+}
+
+.fieldcol {
+	grid-column: fields;
+	justify-self: stretch;
+	align-self: start;
+}
+
+.infocol {
+	grid-column: info;
+	justify-self: start;
+	align-self: start;
+	text-align: left;
+}
+
+.inviteidrow {
+	grid-row: inviteid;
+}
+
+.namerow {
+	grid-row: name;
+}
+
+.loginrow {
+	grid-row: login;
+}
+
+.passrow {
+	grid-row: pass;
+}
+
+.btnrow {
+	grid-row: btn;
+}
+
+.currentpassrow {
+	grid-row: currentpassword;
+}
+
+.newpassrow {
+	grid-row: newpassword;
+}
+
+.icon {
+	width: 1.5em;
+	margin-right: 5px;
+}
+
+.beforeedit {
+	background-color:#ff000080;
+}
+
+.afteredit {
+	background-color:#00ff0080;
+}
+
+.filler {
+	background-color: #80808080;
+}
+
+.postborder {
+	padding: 5px;
+	border-radius: 5px;
+	border-width: 2px;
+	border-style: solid;
+	border-color: lightgray;
+}
+
+.showable.hide {
+	display: none;
+}
+
+.underline {
+	text-decoration-line: underline;
+}
+
+.fleft {
+	float: left;
+}
+.fright {
+	float: right;
+}
+
+.smallmargin {
+	margin-top: 1px;
+	margin-bottom: 1px;
+}
+
+.strike {
+	text-decoration: line-through;
+}
+
+a.show-button {
+	display: inline;
+}

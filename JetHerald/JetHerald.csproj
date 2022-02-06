@@ -6,13 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="DSharpPlus" Version="4.1.0" />
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.1" />
     <PackageReference Include="MySql.Data" Version="8.0.28" />
     <PackageReference Include="NLog.Web.AspNetCore" Version="5.0.0-rc2" />
     <PackageReference Include="Telegram.Bot.Extensions.Polling" Version="1.0.2" />

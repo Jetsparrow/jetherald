@@ -8,6 +8,9 @@ public partial class JetHeraldBot
 
     async Task StartDiscord()
     {
+        if (string.IsNullOrWhiteSpace(DiscordConfig.Token))
+            return;
+
         DiscordBot = new DiscordClient(new()
         {
             Token = DiscordConfig.Token,

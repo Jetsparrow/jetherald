@@ -21,3 +21,11 @@ public class TimeoutConfig
     public int HeartbeatCost { get; set; }
     public int ReportCost { get; set; }
 }
+
+
+public class AuthConfig
+{
+    public int InviteCodeLength { get; set; }
+    public int TicketIdLengthBytes { get; set; }
+    public int HashType { get; set; }
+}

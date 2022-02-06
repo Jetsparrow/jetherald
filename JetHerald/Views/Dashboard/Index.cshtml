@@ -1,0 +1,34 @@
+﻿@model DashboardViewModel
+@Html.ValidationSummary(false, "", new {})
+
+<a asp-controller="Topic" asp-action="Create"> Create new topic</a>
+<p>
+    @foreach (var topic in @Model.Topics)
+    {
+        <p>
+            <span>@topic.Name</span>
+            <br>
+            <span>ReadToken: @topic.ReadToken</span>
+            <br>
+            <span>WriteToken: @topic.WriteToken</span>
+            <br>
+
+            @if (@Model.Hearts.Contains(topic.TopicId))
+            {
+                <table>
+                    <tr><th>Heart</th> <th>Last beat</th> <th>Expires on</th></tr>
+                    @foreach (var heart in @Model.Hearts[topic.TopicId])
+                    {
+                        <tr> 
+                            <td>@heart.Name </td> <td>@heart.LastBeatTs</td> <td>@heart.ExpiryTs</td>
+                        </tr>
+                        
+                    }
+                </table>
+                <br>
+            }
+            
+
+        </p>
+    }
+</p>

@@ -16,12 +16,13 @@ public partial class JetHeraldBot
     CancellationTokenSource TelegramBotShutdownToken { get; } = new(); 
     async Task StartTelegram()
     {
+        if (string.IsNullOrWhiteSpace(TelegramConfig.ApiKey))
+            return;
+
         TelegramBot = new TelegramBotClient(TelegramConfig.ApiKey);
         Me = await TelegramBot.GetMeAsync();
 
         Commands = new ChatCommandRouter(Me.Username, Log);
-        Commands.Add(new CreateTopicCommand(Db), "createtopic");
-        Commands.Add(new DeleteTopicCommand(Db), "deletetopic");
         Commands.Add(new SubscribeCommand(Db, TelegramBot), "subscribe", "sub");
         Commands.Add(new UnsubscribeCommand(Db, TelegramBot), "unsubscribe", "unsub");
         Commands.Add(new ListCommand(Db, TelegramBot), "list");

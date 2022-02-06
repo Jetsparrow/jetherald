@@ -1,0 +1,14 @@
+﻿@Html.ValidationSummary(false, "", new {})
+<form
+    asp-controller="Topic" asp-action="Create"
+    method="POST" type="application/x-www-form-urlencoded"
+    style="text-align:center; margin-top: 100px">
+    
+    <input type="text" class="h2 blueunderline" name="name" placeholder="Topic identifier" required>
+    <br>
+    <br>
+    <input type="text" class="h2 blueunderline" name="descr" placeholder="Description" required>
+    <br>
+    <br>
+    <input type="submit" class="h2 submitpost" value="Create">
+</form>
