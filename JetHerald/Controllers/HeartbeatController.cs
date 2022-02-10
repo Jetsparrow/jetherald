@@ -30,11 +30,13 @@ public class HeartbeatController : ControllerBase
         var q = Request.Query;
         if (q.ContainsKey("Topic")
             && q.ContainsKey("ExpiryTimeout")
-            && q.ContainsKey("WriteToken"))
+            && q.ContainsKey("WriteToken")
+            && q.ContainsKey("Heart"))
         {
             HeartbeatArgs args = new();
             args.Topic = q["Topic"];
             args.WriteToken = q["WriteToken"];
+            args.Heart = q["Heart"];
             if (!int.TryParse(q["ExpiryTimeout"], out var expTimeout))
             {
                 return BadRequest();
