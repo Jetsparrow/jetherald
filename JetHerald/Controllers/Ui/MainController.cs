@@ -1,25 +1,26 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 namespace JetHerald.Controllers.Ui;
+[Route("ui")]
 public class MainController : Controller
 {
-    [Route("/error/")]
+    [Route("error")]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
         return View();
     }
-    [Route("/403")]
+    [Route("403")]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error403()
     {
         return View();
     }
-    [Route("/404")]
+    [Route("404")]
     public IActionResult Error404()
     {
         return View();
     }
-    [Route("/400")]
+    [Route("400")]
     public IActionResult Error400()
     {
         return View();

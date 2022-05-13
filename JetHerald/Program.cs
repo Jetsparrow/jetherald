@@ -35,7 +35,6 @@ try
 
     builder.WebHost.ConfigureAppConfiguration((hostingContext, config) =>
     {
-        //config.SetBasePath(Directory.GetCurrentDirectory());
         config.AddIniFile("secrets.ini",
             optional: true, reloadOnChange: true);
         config.AddIniFile($"secrets.{hostingContext.HostingEnvironment.EnvironmentName}.ini",
@@ -78,10 +77,10 @@ try
         options.Cookie.SameSite = SameSiteMode.Strict;
         options.Cookie.HttpOnly = true;
         // options.SessionStore = new JetHeraldTicketStore();
-        options.LoginPath = "/login";
-        options.LogoutPath = "/logout";
+        options.LoginPath = "/ui/login";
+        options.LogoutPath = "/ui/logout";
         options.ReturnUrlParameter = "redirect";
-        options.AccessDeniedPath = "/403";
+        options.AccessDeniedPath = "/ui/403";
         options.ClaimsIssuer = "JetHerald";
     });
     services.AddPermissions();
@@ -96,6 +95,9 @@ try
         var adminUser = await db.GetUser("admin");
         if (adminUser == null)
         {
+            var adminRole = (await db.GetRoles()).First(r => r.Name == "admin");
+            var unlimitedPlan = (await db.GetPlans()).First(p => p.Name == "unlimited");
+            
             var authCfg = app.Services.GetService<IOptions<AuthConfig>>().Value;
             var password = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
             adminUser = new JetHerald.Contracts.User()
@@ -103,10 +105,12 @@ try
                 Login = "admin",
                 Name = "Administrator",
                 PasswordSalt = RandomNumberGenerator.GetBytes(64),
-                HashType = authCfg.HashType
+                HashType = authCfg.HashType,
+                RoleId = adminRole.RoleId,
+                PlanId = unlimitedPlan.PlanId
             };
             adminUser.PasswordHash = AuthUtils.GetHashFor(password, adminUser.PasswordSalt, adminUser.HashType);
-            var newUser = await db.RegisterUser(adminUser, "admin");
+            var newUser = await db.RegisterUser(adminUser);
             log.Warn($"Created administrative account {adminUser.Login}:{password}. Be sure to save these credentials somewhere!");
         }
     }

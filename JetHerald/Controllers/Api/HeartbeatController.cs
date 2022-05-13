@@ -76,9 +76,9 @@ public class HeartbeatController : ControllerBase
         if (Timeouts.IsTimedOut(t.TopicId))
             return StatusCode(StatusCodes.Status429TooManyRequests);
 
-        var affected = await Db.ReportHeartbeat(t.TopicId, heart, args.ExpiryTimeout);
+        var wasBeating = await Db.ReportHeartbeat(t.TopicId, heart, args.ExpiryTimeout);
 
-        if (affected == 0)
+        if (wasBeating == 0)
             await Herald.BroadcastMessageRaw(t.TopicId, $"!{t.Description}!:\nHeart \"{heart}\" has started beating at {DateTime.UtcNow:O}");
 
         Timeouts.ApplyCost(t.TopicId, Config.HeartbeatCost);

@@ -27,7 +27,7 @@ public class RegistrationController : Controller
     }
 
     public RegistrationController(
-        ILogger<LoginController> log,
+        ILogger<RegistrationController> log,
         Db db,
         IOptionsSnapshot<AuthConfig> authConfig)
     {
@@ -83,14 +83,17 @@ public class RegistrationController : Controller
         }
         var user = new User()
         {
+            RoleId = invite.RoleId,
             PlanId = invite.PlanId,
             Login = req.Login,
             Name = req.Name,
+            HashType = Cfg.HashType,
             PasswordSalt = RandomNumberGenerator.GetBytes(64)
         };
-        user.PasswordHash = AuthUtils.GetHashFor(req.Password, user.PasswordSalt, Cfg.HashType);
-        var newUser = await Db.RegisterUserFromInvite(user, invite.UserInviteId);
-        var userIdentity = AuthUtils.CreateIdentity(newUser.UserId, newUser.Login, newUser.Name, newUser.Allow);
+        user.PasswordHash = AuthUtils.GetHashFor(req.Password, user.PasswordSalt, user.HashType);
+        user = await Db.RegisterUser(user);
+        await Db.RedeemInvite(invite.UserInviteId, user.UserId);
+        var userIdentity = AuthUtils.CreateIdentity(user.UserId, user.Login, user.Name, user.Allow);
         var principal = new ClaimsPrincipal(userIdentity);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
@@ -100,7 +103,7 @@ public class RegistrationController : Controller
         }
         catch (ArgumentException)
         {
-            return RedirectToAction("News", "Issue");
+            return RedirectToAction("Index", "Dashboard");
         }
     }
 }

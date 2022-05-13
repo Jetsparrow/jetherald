@@ -33,10 +33,12 @@ public class AdminToolsController : Controller
     {
         var invites = await Db.GetInvites();
         var plans = await Db.GetPlans();
+        var roles = await Db.GetRoles();
         return View(new ViewInvitesModel
         {
             Invites = invites.ToArray(),
-            Plans = plans.ToDictionary(p => p.PlanId)
+            Plans = plans.ToDictionary(p => p.PlanId),
+            Roles = roles.ToDictionary(r => r.RoleId)
         });
     }
 
@@ -44,16 +46,20 @@ public class AdminToolsController : Controller
     {
         [BindProperty(Name = "planId"), BindRequired]
         public uint PlanId { get; set; }
+        [BindProperty(Name = "roleId"), BindRequired]
+        public uint RoleId { get; set; }
     }
     [HttpPost, Route("ui/admintools/invites/create")]
     public async Task<IActionResult> CreateInvite(CreateInviteRequest req)
     {
-        await Db.CreateUserInvite(req.PlanId, TokenHelper.GetToken(AuthCfg.InviteCodeLength));
+        await Db.CreateUserInvite(req.PlanId, req.RoleId, TokenHelper.GetToken(AuthCfg.InviteCodeLength));
         return RedirectToAction(nameof(ViewInvites));
     }
 }
+
 public class ViewInvitesModel
 {
     public UserInvite[] Invites { get; set; }
     public Dictionary<uint, Plan> Plans { get; set; }
+    public Dictionary<uint, Role> Roles { get; set; }
 }

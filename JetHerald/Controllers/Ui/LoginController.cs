@@ -73,7 +73,7 @@ public class LoginController : Controller
         }
         catch (ArgumentException)
         {
-            return RedirectToAction("Dashboard", "Dashboard");
+            return RedirectToAction("Index", "Dashboard");
         }
     }
 

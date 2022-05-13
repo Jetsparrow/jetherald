@@ -1,13 +1,21 @@
 ﻿@model ViewInvitesModel
 
 <form asp-controller="AdminTools" asp-action="CreateInvite" method="POST" enctype="application/x-www-form-urlencoded">
-    <label for="planselector">Plan: </label>
+    <label for="roleselector">Role:</label>
+    <select name="roleId" required id="roleselector">
+        @foreach (var role in Model.Roles.Values)
+        {
+            <option value="@role.RoleId">@role.Name</option>
+        }
+    </select>
+    <label for="planselector">Plan:</label>
     <select name="planId" required id="planselector">
         @foreach (var plan in Model.Plans.Values)
         {
             <option value="@plan.PlanId">@plan.Name</option>
         }
     </select>
+
     <input type="submit" value="Create invite" class="h2 submitpost" style="margin-top:10px; width:initial">
 </form>
 <br>
@@ -17,7 +25,7 @@
     @foreach (var invite in Model.Invites)
     {
         <li>
-            <span style="font-family:monospace">@invite.InviteCode.Substring(0, 8)... (@Model.Plans[invite.PlanId].Name)</span>
+            <span style="font-family:monospace">@invite.InviteCode.Substring(0, 8)... r:(@Model.Roles[invite.RoleId].Name) p:(@Model.Plans[invite.PlanId].Name)</span>
             <form asp-controller="Admin" asp-action="DeleteInvite" asp-route-inviteId="@invite.UserInviteId" method="POST" style="display:inline">
                 <input type="submit" value="❌" style="display:inline; color:red;" class="buttonlink">
             </form>

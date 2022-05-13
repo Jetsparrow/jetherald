@@ -19,6 +19,11 @@ public class Db
         return await c.QueryAsync<Plan>("SELECT * FROM plan");
     }
 
+    public async Task<IEnumerable<Role>> GetRoles()
+    {
+        using var c = GetConnection();
+        return await c.QueryAsync<Role>("SELECT * FROM role");
+    }
     public async Task<IEnumerable<UserInvite>> GetInvites()
     {
         using var c = GetConnection();
@@ -33,12 +38,15 @@ public class Db
             new { userId });
     }
 
-    public async Task CreateUserInvite(uint planId, string inviteCode)
+    public async Task CreateUserInvite(uint planId, uint roleId, string inviteCode)
     {
         using var c = GetConnection();
-        await c.ExecuteAsync(
-            "INSERT INTO userinvite (PlanId, InviteCode) VALUES (@planId, @inviteCode)",
-            new { planId, inviteCode });
+        await c.ExecuteAsync(@"
+            INSERT INTO userinvite
+                ( PlanId,  RoleId,  InviteCode)
+                VALUES
+                (@planId, @roleId, @inviteCode)",
+            new { planId, roleId, inviteCode });
     }
 
     public async Task<Topic> GetTopic(string name)
@@ -79,11 +87,12 @@ public class Db
     public async Task<User> GetUser(string login)
     {
         using var c = GetConnection();
-        return await c.QuerySingleOrDefaultAsync<User>(
-            " SELECT u.*, p.* " +
-            " FROM user u " +
-            " LEFT JOIN plan p ON p.PlanId = u.PlanId " +
-            " WHERE u.Login = @login",
+        return await c.QuerySingleOrDefaultAsync<User>(@"
+            SELECT u.*, up.*, ur.*
+                FROM user u 
+                JOIN plan up ON u.PlanId = up.PlanId
+                JOIN role ur ON u.RoleId = ur.RoleId 
+                WHERE u.Login = @login;",
             new { login });
     }
 
@@ -135,24 +144,24 @@ public class Db
         return topic;
     }
 
-    public async Task<User> RegisterUserFromInvite(User user, uint inviteId)
+    public async Task<User> RegisterUser(User user)
     {
         using var c = GetConnection();
-        uint userId = await c.QuerySingleOrDefaultAsync<uint>(
-            "CALL register_user_from_invite(@inviteId, @Login, @Name, @PasswordHash, @PasswordSalt, @HashType);", 
-            new { inviteId, user.Login, user.Name, user.PasswordHash, user.PasswordSalt, user.HashType });
-
+        uint userId = await c.QuerySingleOrDefaultAsync<uint>(@"
+            INSERT INTO user
+		        ( Login,  Name,  PasswordHash,  PasswordSalt,  HashType,  PlanId,  RoleId)
+	        VALUES
+		        (@Login, @Name, @PasswordHash, @PasswordSalt, @HashType, @PlanId, @RoleId);",
+            param:user);
         return await GetUser(user.Login);
     }
 
-    public async Task<User> RegisterUser(User user, string plan)
+    public async Task RedeemInvite(uint inviteId, uint userId)
     {
         using var c = GetConnection();
-        uint userId = await c.QuerySingleOrDefaultAsync<uint>(
-            "CALL register_user(@plan, @Login, @Name, @PasswordHash, @PasswordSalt, @HashType);",
-            new { plan, user.Login, user.Name, user.PasswordHash, user.PasswordSalt, user.HashType });
-
-        return await GetUser(user.Login);
+        await c.ExecuteAsync(
+            @"UPDATE userinvite SET RedeemedBy = @userId WHERE UserInviteId = @inviteId",
+            new { inviteId, userId });
     }
 
     public async Task<UserInvite> GetInviteByCode(string inviteCode)
@@ -274,6 +283,6 @@ public class Db
         Config = cfg;
     }
     IOptionsMonitor<ConnectionStrings> Config { get; }
-    MySqlConnection GetConnection() => new(Config.CurrentValue.DefaultConnection);
+    public MySqlConnection GetConnection() => new(Config.CurrentValue.DefaultConnection);
 }
 

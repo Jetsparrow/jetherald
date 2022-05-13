@@ -45,6 +45,7 @@ public class User
     public byte[] PasswordSalt { get; set; }
     public int HashType { get; set; }
     public uint PlanId { get; set; }
+    public uint RoleId { get; set; }
 
     public string Allow { get; set; }
    
@@ -58,6 +59,7 @@ public class UserInvite
     public uint UserInviteId { get; set; }
     public string InviteCode { get; set; }
     public uint PlanId { get; set; }
+    public uint RoleId { get; set; }
     public uint RedeemedBy { get; set; }
 }
 
@@ -74,5 +76,11 @@ public class Plan
     public string Name { get; set; }
     public int MaxTopics { get; set; }
     public double TimeoutMultiplier { get; set; }
+}
+
+public class Role
+{
+    public uint RoleId { get; set; }
+    public string Name { get; set; }
     public string Allow { get; set; }
 }
