@@ -51,7 +51,8 @@ public class LoginController : Controller
 
         ViewData["RedirectTo"] = PathStringOrDefault(redirect);
 
-        var user = await Db.GetUser(req.Username);
+        using var ctx = await Db.GetContext();
+        var user = await ctx.GetUser(req.Username);
         if (user == null)
         {
             ModelState.AddModelError("", "User not found");

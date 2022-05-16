@@ -19,7 +19,8 @@ public class ProfileController : Controller
     public async Task<IActionResult> Index()
     {
         var login = HttpContext.User.GetUserLogin();
-        var user = await Db.GetUser(login);
+        using var ctx = await Db.GetContext();
+        var user = await ctx.GetUser(login);
 
         var vm = new ProfileViewModel
         {

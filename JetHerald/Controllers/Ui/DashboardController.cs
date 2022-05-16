@@ -21,9 +21,10 @@ public class DashboardController : Controller
     public async Task<IActionResult> Index()
     {
         var login = HttpContext.User.GetUserLogin();
-        var user = await Db.GetUser(login);
-        var topics = await Db.GetTopicsForUser(user.UserId);
-        var hearts = await Db.GetHeartsForUser(user.UserId);
+        using var ctx = await Db.GetContext();
+        var user = await ctx.GetUser(login);
+        var topics = await ctx.GetTopicsForUser(user.UserId);
+        var hearts = await ctx.GetHeartsForUser(user.UserId);
         var vm = new DashboardViewModel
         {
             Topics = topics.ToArray(),

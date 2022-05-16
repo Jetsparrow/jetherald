@@ -13,29 +13,40 @@ public class JetHeraldTicketStore : ITicketStore
         Db = db;
         Cfg = cfg;
     }
-    public Task RemoveAsync(string key)
-        => Db.RemoveSession(key);
-
-    public Task RenewAsync(string key, AuthenticationTicket ticket)
-        => Db.UpdateSession(
+    public async Task RemoveAsync(string key)
+    {
+        using var ctx = await Db.GetContext();
+        await ctx.RemoveSession(key);
+        ctx.Commit();
+    }
+    public async Task RenewAsync(string key, AuthenticationTicket ticket)
+    {
+        using var ctx = await Db.GetContext();
+        await ctx.UpdateSession(
             key,
             TicketSerializer.Default.Serialize(ticket),
             ticket.Properties.ExpiresUtc.Value.DateTime);
+        ctx.Commit();
 
+    }
     public async Task<AuthenticationTicket> RetrieveAsync(string key)
     {
-        var userSession = await Db.GetSession(key);
+        using var ctx = await Db.GetContext();
+        var userSession = await ctx.GetSession(key);
         return TicketSerializer.Default.Deserialize(userSession.SessionData);
     }
 
-    public Task<string> StoreAsync(AuthenticationTicket ticket)
+    public async Task<string> StoreAsync(AuthenticationTicket ticket)
     {
         var cfg = Cfg.CurrentValue;
         var bytes = RandomNumberGenerator.GetBytes(cfg.TicketIdLengthBytes);
         var key = Convert.ToBase64String(bytes);
-        return Db.CreateSession(
+        using var ctx = await Db.GetContext();
+        await ctx.CreateSession(
             key,
             TicketSerializer.Default.Serialize(ticket),
             ticket.Properties.ExpiresUtc.Value.DateTime);
+        ctx.Commit();
+        return key;
     }
 }

@@ -36,7 +36,9 @@ public class TopicController : Controller
         if (!ModelState.IsValid)
             return View();
         var userId = HttpContext.User.GetUserId();
-        var topic = await Db.CreateTopic(userId, req.Name, req.Description);
+        using var ctx = await Db.GetContext();
+        var topic = await ctx.CreateTopic(userId, req.Name, req.Description);
+        ctx.Commit();
         if (topic == null)
         {
             ModelState.AddModelError("", "Unknown error");
@@ -50,11 +52,12 @@ public class TopicController : Controller
     public async Task<IActionResult> ViewTopic(string topicName)
     {
         var userId = HttpContext.User.GetUserId();
-        var topic = await Db.GetTopic(topicName);
+        using var ctx = await Db.GetContext();
+        var topic = await ctx.GetTopic(topicName);
         if (topic == null || topic.CreatorId != userId)
             return NotFound();
 
-        var hearts = await Db.GetHeartsForTopic(topic.TopicId);
+        var hearts = await ctx.GetHeartsForTopic(topic.TopicId);
         var vm = new TopicViewModel
         {
             Topic = topic,

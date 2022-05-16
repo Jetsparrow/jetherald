@@ -21,7 +21,8 @@ public class DiscordCommands : BaseCommandModule
         _ = ctx.TriggerTypingAsync();
 
         var chat = NamespacedId.Discord(ctx.Channel.Id);
-        var topic = await Db.GetTopicForSub(token, chat);
+        using var dbctx = await Db.GetContext();
+        var topic = await dbctx.GetTopicForSub(token, chat);
 
         if (topic == null)
             await ctx.RespondAsync("topic not found");
@@ -31,7 +32,8 @@ public class DiscordCommands : BaseCommandModule
             await ctx.RespondAsync("token mismatch");
         else
         {
-            await Db.CreateSubscription(topic.TopicId, chat);
+            await dbctx.CreateSubscription(topic.TopicId, chat);
+            dbctx.Commit();
             await ctx.RespondAsync($"subscribed to {topic.Name}");
         }
     }
@@ -46,8 +48,8 @@ public class DiscordCommands : BaseCommandModule
     )
     {
         _ = ctx.TriggerTypingAsync();
-
-        int affected = await Db.RemoveSubscription(name, NamespacedId.Discord(ctx.Channel.Id));
+        using var dbctx = await Db.GetContext();
+        int affected = await dbctx.RemoveSubscription(name, NamespacedId.Discord(ctx.Channel.Id));
         if (affected >= 1)
             await ctx.RespondAsync($"unsubscribed from {name}");
         else

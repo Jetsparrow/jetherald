@@ -69,13 +69,14 @@ public class RegistrationController : Controller
 
         ViewData["RedirectTo"] = PathStringOrDefault(redirect);
 
-        var oldUser = await Db.GetUser(req.Login);
+        using var ctx = await Db.GetContext();
+        var oldUser = await ctx.GetUser(req.Login);
         if (oldUser != null)
         {
             ModelState.AddModelError("", "User already exists");
             return View();
         }
-        var invite = await Db.GetInviteByCode(req.InviteCode);
+        var invite = await ctx.GetInviteByCode(req.InviteCode);
         if (invite == null || invite.RedeemedBy != default)
         {
             ModelState.AddModelError("", "No unredeemed invite with this code found");
@@ -91,8 +92,9 @@ public class RegistrationController : Controller
             PasswordSalt = RandomNumberGenerator.GetBytes(64)
         };
         user.PasswordHash = AuthUtils.GetHashFor(req.Password, user.PasswordSalt, user.HashType);
-        user = await Db.RegisterUser(user);
-        await Db.RedeemInvite(invite.UserInviteId, user.UserId);
+        user = await ctx.RegisterUser(user);
+        await ctx.RedeemInvite(invite.UserInviteId, user.UserId);
+        ctx.Commit();
         var userIdentity = AuthUtils.CreateIdentity(user.UserId, user.Login, user.Name, user.Allow);
         var principal = new ClaimsPrincipal(userIdentity);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);

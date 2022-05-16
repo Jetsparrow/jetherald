@@ -21,7 +21,8 @@ public class ListCommand : IChatCommand
 
         var msg = update.Message;
         var chatid = msg.Chat.Id;
-        var topics = await Db.GetTopicsForSub(NamespacedId.Telegram(chatid));
+        using var ctx = await Db.GetContext();
+        var topics = await ctx.GetTopicsForSub(NamespacedId.Telegram(chatid));
 
         return topics.Any()
             ? "Topics:\n" + string.Join("\n", topics)

@@ -44,7 +44,9 @@ public partial class JetHeraldBot : IHostedService
 
     public async Task BroadcastMessageRaw(uint topicId, string formatted)
     {
-        var chatIds = await Db.GetSubsForTopic(topicId);
+        IEnumerable<NamespacedId> chatIds;
+        using (var ctx = await Db.GetContext())
+            chatIds = await ctx.GetSubsForTopic(topicId);
         foreach (var c in chatIds)
             await SendMessageRaw(c, formatted);
     }

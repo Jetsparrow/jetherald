@@ -26,7 +26,9 @@ public class UnsubscribeCommand : IChatCommand
         var chat = NamespacedId.Telegram(msg.Chat.Id);
 
         var topicName = cmd.Parameters[0];
-        int affected = await Db.RemoveSubscription(topicName, chat);
+        using var ctx = await Db.GetContext();
+        int affected = await ctx.RemoveSubscription(topicName, chat);
+        ctx.Commit();
         if (affected >= 1)
             return $"unsubscribed from {topicName}";
         else

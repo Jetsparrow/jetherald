@@ -67,7 +67,8 @@ public class HeartbeatController : ControllerBase
     {
         var heart = args.Heart ?? "General";
 
-        var t = await Db.GetTopic(args.Topic);
+        var ctx = await Db.GetContext();
+        var t = await ctx.GetTopic(args.Topic);
         if (t == null)
             return new NotFoundResult();
         else if (!t.WriteToken.Equals(args.WriteToken, StringComparison.Ordinal))
@@ -76,8 +77,8 @@ public class HeartbeatController : ControllerBase
         if (Timeouts.IsTimedOut(t.TopicId))
             return StatusCode(StatusCodes.Status429TooManyRequests);
 
-        var wasBeating = await Db.ReportHeartbeat(t.TopicId, heart, args.ExpiryTimeout);
-
+        var wasBeating = await ctx.ReportHeartbeat(t.TopicId, heart, args.ExpiryTimeout);
+        ctx.Commit();
         if (wasBeating == 0)
             await Herald.BroadcastMessageRaw(t.TopicId, $"!{t.Description}!:\nHeart \"{heart}\" has started beating at {DateTime.UtcNow:O}");
 

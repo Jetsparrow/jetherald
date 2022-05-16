@@ -25,7 +25,8 @@ public class SubscribeCommand : IChatCommand
         var chat = NamespacedId.Telegram(args.Message.Chat.Id);
         var token = cmd.Parameters[0];
 
-        var topic = await Db.GetTopicForSub(token, chat);
+        using var ctx = await Db.GetContext();
+        var topic = await ctx.GetTopicForSub(token, chat);
 
         if (topic == null)
             return "topic not found";
@@ -35,7 +36,8 @@ public class SubscribeCommand : IChatCommand
             return "token mismatch";
         else
         {
-            await Db.CreateSubscription(topic.TopicId, chat);
+            await ctx.CreateSubscription(topic.TopicId, chat);
+            ctx.Commit();
             return $"subscribed to {topic.Name}";
         }
     }

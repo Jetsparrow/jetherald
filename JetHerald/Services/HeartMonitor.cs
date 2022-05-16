@@ -24,14 +24,15 @@ public class HeartMonitor : BackgroundService
             await Task.Delay(1000 * 10, token);
             try
             {
-                var attacks = await Db.ProcessHearts();
+                using var ctx = await Db.GetContext();
+                var attacks = await ctx.ProcessHearts();
                 foreach (var a in attacks)
                 {
                     await Herald.BroadcastMessageRaw(
                         a.TopicId,
                         $"!{a.Description}!:\nHeart \"{a.Heart}\" stopped beating at {a.CreateTs:O}");
 
-                    await Db.MarkHeartAttackReported(a.HeartEventId);
+                    await ctx.MarkHeartAttackReported(a.HeartEventId);
                     
                     if (token.IsCancellationRequested)
                         return;

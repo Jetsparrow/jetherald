@@ -12,7 +12,8 @@ public class AnonymousUserMassagerMiddleware : IMiddleware
     {
         AnonymousPermissions = new Lazy<Task<string>>(async () =>
         {
-            var anonymousUser = await db.GetUser("Anonymous");
+            using var ctx = await db.GetContext();
+            var anonymousUser = await ctx.GetUser("Anonymous");
             return anonymousUser.Allow;
         });
     }

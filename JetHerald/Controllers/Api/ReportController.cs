@@ -52,7 +52,12 @@ public class ReportController : ControllerBase
 
     private async Task<IActionResult> DoReport(ReportArgs args)
     {
-        var t = await Db.GetTopic(args.Topic);
+        Contracts.Topic t;
+        using (var ctx = await Db.GetContext())
+        {
+            t = await ctx.GetTopic(args.Topic);
+        }
+        
         if (t == null)
             return new NotFoundResult();
         else if (!t.WriteToken.Equals(args.WriteToken, StringComparison.OrdinalIgnoreCase))

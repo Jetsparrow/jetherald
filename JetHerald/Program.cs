@@ -91,12 +91,12 @@ try
     // preflight checks
     {
         var db = app.Services.GetService<Db>();
-        
-        var adminUser = await db.GetUser("admin");
+        using var ctx = await db.GetContext();
+        var adminUser = await ctx.GetUser("admin");
         if (adminUser == null)
         {
-            var adminRole = (await db.GetRoles()).First(r => r.Name == "admin");
-            var unlimitedPlan = (await db.GetPlans()).First(p => p.Name == "unlimited");
+            var adminRole = (await ctx.GetRoles()).First(r => r.Name == "admin");
+            var unlimitedPlan = (await ctx.GetPlans()).First(p => p.Name == "unlimited");
             
             var authCfg = app.Services.GetService<IOptions<AuthConfig>>().Value;
             var password = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
@@ -110,7 +110,8 @@ try
                 PlanId = unlimitedPlan.PlanId
             };
             adminUser.PasswordHash = AuthUtils.GetHashFor(password, adminUser.PasswordSalt, adminUser.HashType);
-            var newUser = await db.RegisterUser(adminUser);
+            var newUser = await ctx.RegisterUser(adminUser);
+            ctx.Commit();
             log.Warn($"Created administrative account {adminUser.Login}:{password}. Be sure to save these credentials somewhere!");
         }
     }

@@ -31,9 +31,10 @@ public class AdminToolsController : Controller
     [HttpGet, Route("ui/admintools/invites")]
     public async Task<IActionResult> ViewInvites()
     {
-        var invites = await Db.GetInvites();
-        var plans = await Db.GetPlans();
-        var roles = await Db.GetRoles();
+        using var ctx = await Db.GetContext();
+        var invites = await ctx.GetInvites();
+        var plans = await ctx.GetPlans();
+        var roles = await ctx.GetRoles();
         return View(new ViewInvitesModel
         {
             Invites = invites.ToArray(),
@@ -52,7 +53,9 @@ public class AdminToolsController : Controller
     [HttpPost, Route("ui/admintools/invites/create")]
     public async Task<IActionResult> CreateInvite(CreateInviteRequest req)
     {
-        await Db.CreateUserInvite(req.PlanId, req.RoleId, TokenHelper.GetToken(AuthCfg.InviteCodeLength));
+        using var ctx = await Db.GetContext();
+        await ctx.CreateUserInvite(req.PlanId, req.RoleId, TokenHelper.GetToken(AuthCfg.InviteCodeLength));
+        ctx.Commit();
         return RedirectToAction(nameof(ViewInvites));
     }
 }
