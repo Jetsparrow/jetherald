@@ -1,6 +1,6 @@
-﻿@model ViewInvitesModel
+﻿@model AdminInvitesModel
 
-<form asp-controller="AdminTools" asp-action="CreateInvite" method="POST" enctype="application/x-www-form-urlencoded">
+<form asp-controller="AdminInvites" asp-action="CreateInvite" method="POST" enctype="application/x-www-form-urlencoded">
     <label for="roleselector">Role:</label>
     <select name="roleId" required id="roleselector">
         @foreach (var role in Model.Roles.Values)
@@ -25,11 +25,23 @@
     @foreach (var invite in Model.Invites)
     {
         <li>
-            <span style="font-family:monospace">@invite.InviteCode.Substring(0, 8)... r:(@Model.Roles[invite.RoleId].Name) p:(@Model.Plans[invite.PlanId].Name)</span>
+            <span style="font-family:monospace">@invite.InviteCode.Substring(0, 12)... r:(@Model.Roles[invite.RoleId].Name) p:(@Model.Plans[invite.PlanId].Name)</span>
             <form asp-controller="Admin" asp-action="DeleteInvite" asp-route-inviteId="@invite.UserInviteId" method="POST" style="display:inline">
                 <input type="submit" value="❌" style="display:inline; color:red;" class="buttonlink">
             </form>
-        <a asp-controller="Registration" asp-action="Register" asp-route-invite="@invite.InviteCode" class="copier" style="display:inline; color:blue">📤</a>
+            @if (invite.RedeemedBy == default)
+            {
+                <a class="copier" style="display:inline; color:blue"
+                    asp-controller="Registration" asp-action="Register" asp-route-invite="@invite.InviteCode">
+                    📤
+                </a>
+            }
+            else
+            {
+                <span>
+                    @invite.RedeemedBy:@(invite.RedeemedByLogin ?? "deleted user")
+                </span>
+            }
         </li>
     }
 </ul>

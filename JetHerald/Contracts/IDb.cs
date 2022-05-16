@@ -61,6 +61,7 @@ public class UserInvite
     public uint PlanId { get; set; }
     public uint RoleId { get; set; }
     public uint RedeemedBy { get; set; }
+    public string? RedeemedByLogin { get; set; }
 }
 
 public class UserSession

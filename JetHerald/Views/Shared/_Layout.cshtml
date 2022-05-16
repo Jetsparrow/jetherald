@@ -21,9 +21,9 @@
                     {
                         <a asp-action="Index" asp-controller="Dashboard">Dashboard</a>
                     }
-                    @if (Context.UserCan("admintools"))
+                    @if (Context.UserCan("admin"))
                     {
-                        <a asp-action="Index" asp-controller="AdminTools">Admin tools</a>
+                        <a asp-action="Index" asp-controller="Admin">Admin tools</a>
                     }
                     @if (User.IsAnonymous())
                     {

@@ -1,41 +1,35 @@
-﻿using JetHerald.Authorization;
-using JetHerald.Contracts;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using JetHerald.Authorization;
 using JetHerald.Options;
 using JetHerald.Services;
-
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using JetHerald.Contracts;
 
 namespace JetHerald.Controllers.Ui;
-[Permission("admintools")]
-public class AdminToolsController : Controller
+
+[Permission("admin.invites")]
+[Route("ui/admin/invites")]
+public class AdminInvitesController : Controller
 {
     Db Db { get; }
-    ILogger Log { get; }
     AuthConfig AuthCfg { get; }
-    public AdminToolsController(
-        ILogger<AdminToolsController> log,
+    public AdminInvitesController(
         Db db,
         IOptionsSnapshot<AuthConfig> authCfg
         )
     {
         Db = db;
-        Log = log;
         AuthCfg = authCfg.Value;
     }
 
-    [HttpGet, Route("ui/admintools/")]
-    public IActionResult Index() => View();
-
-
-    [HttpGet, Route("ui/admintools/invites")]
-    public async Task<IActionResult> ViewInvites()
+    [HttpGet]
+    public async Task<IActionResult> Index()
     {
         using var ctx = await Db.GetContext();
         var invites = await ctx.GetInvites();
         var plans = await ctx.GetPlans();
         var roles = await ctx.GetRoles();
-        return View(new ViewInvitesModel
+        return View(new AdminInvitesModel
         {
             Invites = invites.ToArray(),
             Plans = plans.ToDictionary(p => p.PlanId),
@@ -50,17 +44,35 @@ public class AdminToolsController : Controller
         [BindProperty(Name = "roleId"), BindRequired]
         public uint RoleId { get; set; }
     }
-    [HttpPost, Route("ui/admintools/invites/create")]
+
+    [Permission("admin.invites.create")]
+    [HttpPost, Route("create")]
     public async Task<IActionResult> CreateInvite(CreateInviteRequest req)
     {
         using var ctx = await Db.GetContext();
         await ctx.CreateUserInvite(req.PlanId, req.RoleId, TokenHelper.GetToken(AuthCfg.InviteCodeLength));
         ctx.Commit();
-        return RedirectToAction(nameof(ViewInvites));
+        return RedirectToAction(nameof(Index));
+    }
+
+    public class DeleteInviteRequest
+    {
+        [BindProperty(Name = "inviteId"), BindRequired]
+        public uint UserInviteId { get; set; }
+    }
+
+    [Permission("admin.invites.delete")]
+    [HttpPost, Route("delete")]
+    public async Task<IActionResult> DeleteInvite(DeleteInviteRequest req)
+    {
+        using var ctx = await Db.GetContext();
+        await ctx.DeleteUserInvite(req.UserInviteId);
+        ctx.Commit();
+        return RedirectToAction(nameof(Index));
     }
 }
 
-public class ViewInvitesModel
+public class AdminInvitesModel
 {
     public UserInvite[] Invites { get; set; }
     public Dictionary<uint, Plan> Plans { get; set; }

@@ -56,7 +56,10 @@ public class DbContext : IDisposable
     public Task<IEnumerable<Role>> GetRoles() 
         => Tran.QueryAsync<Role>("SELECT * FROM role");
     public Task<IEnumerable<UserInvite>> GetInvites() 
-        => Tran.QueryAsync<UserInvite>("SELECT * FROM userinvite");
+        => Tran.QueryAsync<UserInvite>(@"
+            SELECT ui.*, u.Login as RedeemedByLogin
+                FROM userinvite ui
+                LEFT JOIN user u ON ui.RedeemedBy = u.UserId");
 
     public Task<IEnumerable<Heart>> GetHeartsForUser(uint userId)
         => Tran.QueryAsync<Heart>(
@@ -70,6 +73,11 @@ public class DbContext : IDisposable
                 VALUES
                 (@planId, @roleId, @inviteCode)",
             new { planId, roleId, inviteCode });
+
+    public Task DeleteUserInvite(uint inviteId)
+        => Tran.ExecuteAsync(@" DELETE FROM userinvite WHERE UserInviteId = @intiteId",
+            new { inviteId });
+
 
     public Task<Topic> GetTopic(string name)
         => Tran.QuerySingleOrDefaultAsync<Topic>(
