@@ -2,33 +2,41 @@
 @Html.ValidationSummary(false, "", new {})
 
 <a asp-controller="Topic" asp-action="Create"> Create new topic</a>
-<p>
+<div class="clocks">
+    <div class="clock">@DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") UTC</div>
+</div>
+<div class="topics-list">
     @foreach (var topic in @Model.Topics)
     {
-        <p>
-            <span>@topic.Name</span>
-            <br>
-            <span>ReadToken: @topic.ReadToken</span>
-            <br>
-            <span>WriteToken: @topic.WriteToken</span>
-            <br>
+        <div class="topic-info">
+            <h3>@topic.Name</h3>
+            <div><span class="token-descr"> Read: </span><span class="token-field">@topic.ReadToken</span></div>
+            <div><span class="token-descr">Write: </span><span class="token-field">@topic.WriteToken</span></div>
 
             @if (@Model.Hearts.Contains(topic.TopicId))
             {
-                <table>
-                    <tr><th>Heart</th> <th>Last beat</th> <th>Expires on</th></tr>
+                <table class="hearts-table">
+                    <tr>
+                        <th>Heart</th>
+                        <th>Status</th>
+                        <th>Last beat</th>
+                        <th>Expires on</th>
+                    </tr>
                     @foreach (var heart in @Model.Hearts[topic.TopicId])
                     {
                         <tr> 
-                            <td>@heart.Name </td> <td>@heart.LastBeatTs</td> <td>@heart.ExpiryTs</td>
+                            <td>@heart.Name</td>
+                            <td>@heart.Status</td>
+                            <td class="numeric">@heart.LastBeatTs.ToString("yyyy-dd-MM HH:mm:ss")</td>
+                            <td class="numeric">@heart.ExpiryTs.ToString("yyyy-dd-MM HH:mm:ss")</td>
                         </tr>
-                        
                     }
                 </table>
-                <br>
             }
-            
-
-        </p>
+            else
+            {
+                <div>No active hearts</div>
+            }
+        </div>
     }
-</p>
+</div>
