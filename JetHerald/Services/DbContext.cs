@@ -75,7 +75,7 @@ public class DbContext : IDisposable
             new { planId, roleId, inviteCode });
 
     public Task DeleteUserInvite(uint inviteId)
-        => Tran.ExecuteAsync(@" DELETE FROM userinvite WHERE UserInviteId = @intiteId",
+        => Tran.ExecuteAsync(@" DELETE FROM userinvite WHERE UserInviteId = @inviteId",
             new { inviteId });
 
 
