@@ -62,13 +62,9 @@ try
     services.AddSingleton<RequestTimeTrackerMiddleware>();
     services.AddSingleton<AnonymousUserMassagerMiddleware>();
     services.AddHostedService<HeartMonitor>();
-    
-    services.AddControllersWithViews()
-    #if DEBUG
-        .AddRazorRuntimeCompilation()
-    #endif
-    ;
-    
+
+    var mvcBuilder = services.AddControllersWithViews();
+
     services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
