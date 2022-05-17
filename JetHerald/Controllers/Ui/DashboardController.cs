@@ -28,9 +28,31 @@ public class DashboardController : Controller
         var vm = new DashboardViewModel
         {
             Topics = topics.ToArray(),
-            Hearts = hearts.ToLookup(h => h.TopicId)
+            Hearts = hearts.Where(h => h.ExpiryTs + TimeSpan.FromDays(90) >= DateTime.UtcNow ).ToLookup(h => h.TopicId)
         };
         return View(vm);
+    }
+}
+
+
+public static class DateTimeExt
+{
+    public static string GetReadableDate(DateTime dt, DateTime now)
+    {
+        dt = dt.Date;
+        now = now.Date;
+        var daysDiff = (int)Math.Round((dt - now).TotalDays);
+
+        if (daysDiff == 0)
+            return "today";
+        if (daysDiff == 1)
+            return "tomorrow";
+        if (daysDiff == -1)
+            return "yesterday";
+        
+        if (Math.Abs(daysDiff) < 62)
+            return dt.ToString("MMM dd");
+        return dt.ToString("yyyy MMMM dd");
     }
 }
 

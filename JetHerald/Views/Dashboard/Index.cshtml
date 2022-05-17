@@ -1,17 +1,19 @@
 ﻿@model DashboardViewModel
 @Html.ValidationSummary(false, "", new {})
 
-<a asp-controller="Topic" asp-action="Create"> Create new topic</a>
+<a asp-controller="Topic" asp-action="Create" class="btn"> Create new topic</a>
 <div class="clocks">
-    <div class="clock">@DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") UTC</div>
+    <div class="clock">@DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") @TimeZoneInfo.Local.StandardName</div>
 </div>
 <div class="topics-list">
     @foreach (var topic in @Model.Topics)
     {
         <div class="topic-info">
             <h3>@topic.Name</h3>
-            <div><span class="token-descr"> Read: </span><span class="token-field">@topic.ReadToken</span></div>
-            <div><span class="token-descr">Write: </span><span class="token-field">@topic.WriteToken</span></div>
+            <div>
+                <span class="token-descr"> Read: </span><span class="token-field">@topic.ReadToken</span>
+                <span class="token-descr">Write: </span><span class="token-field">@topic.WriteToken</span>
+            </div>
 
             @if (@Model.Hearts.Contains(topic.TopicId))
             {
@@ -27,8 +29,8 @@
                         <tr> 
                             <td>@heart.Name</td>
                             <td>@heart.Status</td>
-                            <td class="numeric">@heart.LastBeatTs.ToString("yyyy-dd-MM HH:mm:ss")</td>
-                            <td class="numeric">@heart.ExpiryTs.ToString("yyyy-dd-MM HH:mm:ss")</td>
+                            <td class="numeric">@DateTimeExt.GetReadableDate(heart.LastBeatTs.ToLocalTime(), DateTime.Now) @heart.LastBeatTs.ToLocalTime().ToString("HH:mm:ss")</td>
+                            <td class="numeric">@DateTimeExt.GetReadableDate(heart.ExpiryTs.ToLocalTime(), DateTime.Now) @heart.ExpiryTs.ToLocalTime().ToString("HH:mm:ss")</td>
                         </tr>
                     }
                 </table>

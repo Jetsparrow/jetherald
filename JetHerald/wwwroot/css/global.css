@@ -67,11 +67,11 @@ div.page-main {
 	width: 100%;
 }
 
-	.topics-list .topic-info {
-		padding: 10px;
-		margin: 5px;
-		border-bottom: 1px solid black;
-	}
+.topics-list .topic-info {
+	padding: 10px;
+	margin: 5px;
+	border-bottom: 1px solid black;
+}
 
 nav {
 	color: #eef;
@@ -276,6 +276,28 @@ label {
 	background-color: #80808080;
 }
 
+.btn {
+	background: #059;
+	padding: 0.5em;
+	padding-inline: 1em;
+	color: #eef;
+}
+
+.btn:hover {
+	background: #036;
+	color: #fff;
+}
+
+.clocks{
+	margin:1em;
+}
+
+.clock {
+	background: #ddddee;
+	text-align: center;
+	font-size: xx-large;
+}
+
 .token-descr {
 	font-family: monospace;
 	font-size: small;
@@ -287,11 +309,17 @@ label {
 
 .token-field {
 	font-family: monospace;
-	font-size:small;
+	font-size: small;
 	white-space: pre;
 	border: dashed 1px gray;
 	padding-inline: 4px;
 }
+
+.token-field:not(:hover) {
+	background-color: lightgray;
+	color:lightgray;
+}
+
 
 table.hearts-table {
 
