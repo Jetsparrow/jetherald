@@ -1,4 +1,10 @@
+html, body {
+	height: 100%;
+}
+
 body {
+	display: flex;
+	flex-flow: column;
 	line-height: 1.6;
 	font-size: 16px;
 	font-family: sans-serif;
@@ -6,6 +12,32 @@ body {
 	margin: 0;
 	background-color: #fafaff;
 }
+
+
+header {
+	background-color: #059;
+	padding: 10px 0px 10px 0px;
+	font-size: 18px;
+	width: 100%;
+	font-family: tahoma, sans-serif;
+}
+
+.page-mid {
+	flex: 1 0 auto;
+}
+
+main {
+	margin: auto;
+	margin-top: 20px;
+	max-width: 768px;
+}
+
+footer {
+	flex-shrink: 0;
+}
+
+
+
 
 h1,
 h2,
@@ -19,13 +51,6 @@ h6 {
 	font-family: tahoma, sans-serif;
 }
 
-header {
-	background-color: #059;
-	padding: 10px 0px 10px 0px;
-	font-size: 18px;
-	width: 100%;
-	font-family: tahoma, sans-serif;
-}
 
 nav {
 	display: inline-block;
@@ -56,11 +81,6 @@ span.assigneetext {
 	color: black;
 }
 
-div.page-main {
-	max-width: 750px;
-	margin: auto;
-	margin-top: 20px;
-}
 
 .topics-list {
 	padding-left: 0;

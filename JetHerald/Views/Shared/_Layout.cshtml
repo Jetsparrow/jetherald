@@ -3,7 +3,6 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>JetHerald</title>
     <link rel="stylesheet" href="~/css/global.css" />
     @RenderSection("Stylesheets", required: false)
@@ -39,11 +38,14 @@
         </div>
     </header>
 
-    <div class="page-main">
-        @RenderBody()
+    <div class="page-mid">
+        <main>
+            @RenderBody()
+        </main>
     </div>
 
     <footer>
+        @RenderSection("footer", required: false)
         Rendered in @(Context.Features.Get<RequestTimeFeature>().Stopwatch.Elapsed.TotalMilliseconds) ms
     </footer>
 
