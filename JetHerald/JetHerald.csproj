@@ -2,15 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-	<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-	<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-	<PreserveCompilationContext>false</PreserveCompilationContext>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <PreserveCompilationContext>false</PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Dapper.Transaction" Version="2.0.35.2" />
-    <PackageReference Include="DSharpPlus" Version="4.1.0" />
-    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.1.0" />
+    <PackageReference Include="DSharpPlus" Version="4.2.0" />
+    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.2.0" />
     <PackageReference Include="MySql.Data" Version="8.0.28" />
     <PackageReference Include="NLog.Web.AspNetCore" Version="5.0.0-rc2" />
     <PackageReference Include="Telegram.Bot.Extensions.Polling" Version="1.0.2" />

@@ -47,26 +47,39 @@ public class DbContext : IDisposable
         Tran.Dispose();
         Conn.Dispose();
     }
-    public Task<IEnumerable<Topic>> GetTopicsForUser(uint userId) 
+    public Task<IEnumerable<Topic>> GetTopicsForUser(uint userId)
         => Tran.QueryAsync<Topic>(
             " SELECT * FROM topic WHERE CreatorId = @userId",
             new { userId });
-    public Task<IEnumerable<Plan>> GetPlans() 
+
+    public Task UpdatePerms(uint userId, uint planId, uint roleId)
+        => Tran.ExecuteAsync(@"
+            UPDATE user
+                SET PlanId = @planId,
+                    RoleId = @roleId
+                WHERE UserId = @userId",
+            new { userId, planId, roleId });
+
+    public Task<IEnumerable<Plan>> GetPlans()
         => Tran.QueryAsync<Plan>("SELECT * FROM plan");
-    public Task<IEnumerable<Role>> GetRoles() 
+    public Task<IEnumerable<Role>> GetRoles()
         => Tran.QueryAsync<Role>("SELECT * FROM role");
-    public Task<IEnumerable<UserInvite>> GetInvites() 
+    public Task<IEnumerable<UserInvite>> GetInvites()
         => Tran.QueryAsync<UserInvite>(@"
             SELECT ui.*, u.Login as RedeemedByLogin
                 FROM userinvite ui
                 LEFT JOIN user u ON ui.RedeemedBy = u.UserId");
+    public Task<IEnumerable<User>> GetUsers()
+        => Tran.QueryAsync<User>(@"
+            SELECT u.*
+                FROM user u;");
 
     public Task<IEnumerable<Heart>> GetHeartsForUser(uint userId)
         => Tran.QueryAsync<Heart>(
             " SELECT h.* FROM heart h JOIN topic USING (TopicId) WHERE CreatorId = @userId",
             new { userId });
 
-    public Task CreateUserInvite(uint planId, uint roleId, string inviteCode) 
+    public Task CreateUserInvite(uint planId, uint roleId, string inviteCode)
         => Tran.ExecuteAsync(@"
             INSERT INTO userinvite
                 ( PlanId,  RoleId,  InviteCode)
@@ -97,11 +110,11 @@ public class DbContext : IDisposable
             " WHERE ReadToken = @token",
             new { token, sub });
 
-    public Task<IEnumerable<Heart>> GetHeartsForTopic(uint topicId) 
+    public Task<IEnumerable<Heart>> GetHeartsForTopic(uint topicId)
         => Tran.QueryAsync<Heart>(
             " SELECT * FROM heart WHERE TopicId = @topicId",
             new { topicId });
-    public Task<User> GetUser(string login) 
+    public Task<User> GetUser(string login)
         => Tran.QuerySingleOrDefaultAsync<User>(@"
             SELECT u.*, up.*, ur.*
                 FROM user u 
@@ -154,30 +167,30 @@ public class DbContext : IDisposable
 		        ( Login,  Name,  PasswordHash,  PasswordSalt,  HashType,  PlanId,  RoleId)
 	        VALUES
 		        (@Login, @Name, @PasswordHash, @PasswordSalt, @HashType, @PlanId, @RoleId);",
-            param:user);
+            param: user);
         return await GetUser(user.Login);
     }
 
-    public Task RedeemInvite(uint inviteId, uint userId) 
+    public Task RedeemInvite(uint inviteId, uint userId)
         => Tran.ExecuteAsync(
             @"UPDATE userinvite SET RedeemedBy = @userId WHERE UserInviteId = @inviteId",
             new { inviteId, userId });
 
-    public Task<UserInvite> GetInviteByCode(string inviteCode) 
+    public Task<UserInvite> GetInviteByCode(string inviteCode)
         => Tran.QuerySingleOrDefaultAsync<UserInvite>(
             " SELECT * FROM userinvite " +
             " WHERE InviteCode = @inviteCode " +
             " AND RedeemedBy IS NULL ",
             new { inviteCode });
 
-    public Task<IEnumerable<NamespacedId>> GetSubsForTopic(uint topicId) 
+    public Task<IEnumerable<NamespacedId>> GetSubsForTopic(uint topicId)
         => Tran.QueryAsync<NamespacedId>(
             " SELECT Sub " +
             " FROM topic_sub " +
             " WHERE TopicId = @topicid",
             new { topicId });
 
-    public Task<IEnumerable<Topic>> GetTopicsForSub(NamespacedId sub) 
+    public Task<IEnumerable<Topic>> GetTopicsForSub(NamespacedId sub)
         => Tran.QueryAsync<Topic>(
             " SELECT t.*" +
             " FROM topic_sub ts" +
@@ -185,7 +198,7 @@ public class DbContext : IDisposable
             " WHERE ts.Sub = @sub",
             new { sub });
 
-    public Task CreateSubscription(uint topicId, NamespacedId sub) 
+    public Task CreateSubscription(uint topicId, NamespacedId sub)
         => Tran.ExecuteAsync(
             " INSERT INTO topic_sub" +
             " (TopicId, Sub)" +
@@ -193,7 +206,7 @@ public class DbContext : IDisposable
             " (@topicId, @sub)",
             new { topicId, sub });
 
-    public Task<int> RemoveSubscription(string topicName, NamespacedId sub) 
+    public Task<int> RemoveSubscription(string topicName, NamespacedId sub)
         => Tran.ExecuteAsync(
             " DELETE ts " +
             " FROM topic_sub ts" +
@@ -202,7 +215,7 @@ public class DbContext : IDisposable
             new { topicName, sub });
 
 
-    public Task<int> ReportHeartbeat(uint topicId, string heart, int timeoutSeconds) 
+    public Task<int> ReportHeartbeat(uint topicId, string heart, int timeoutSeconds)
         => Tran.QueryFirstAsync<int>(
             @"CALL report_heartbeat(@topicId, @heart, @timeoutSeconds);",
             new { topicId, heart, timeoutSeconds });
@@ -215,14 +228,14 @@ public class DbContext : IDisposable
 
     #region TicketStore
 
-    public Task RemoveSession(string sessionId) 
+    public Task RemoveSession(string sessionId)
         => Tran.ExecuteAsync("DELETE FROM usersession WHERE SessionId = @sessionId", new { sessionId });
-    public Task<UserSession> GetSession(string sessionId) 
+    public Task<UserSession> GetSession(string sessionId)
         => Tran.QuerySingleOrDefaultAsync<UserSession>(
             "SELECT * FROM usersession WHERE SessionId = @sessionId",
             new { sessionId });
 
-    public Task UpdateSession(string sessionId, byte[] data, DateTime expiryTs) 
+    public Task UpdateSession(string sessionId, byte[] data, DateTime expiryTs)
         => Tran.ExecuteAsync(@"
             UPDATE usersession SET
                 SessionData = @data,

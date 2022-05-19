@@ -396,3 +396,7 @@ td.numeric {
 a.show-button {
 	display: inline;
 }
+
+.username {
+	color: gray;
+}
