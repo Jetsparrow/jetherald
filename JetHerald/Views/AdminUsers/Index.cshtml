@@ -1,16 +1,29 @@
 @model AdminUsersModel
 
-<h3>Invites</h3>
-<ul class="issues-list">
+<h3>users</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Login</th>
+            <th>Role</th>
+            <th>Plan</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
     @foreach (var user in Model.Users)
     {
-        <li>
-            @user.Name <span class="username">@@@user.Login</span> (
-            @if (Context.UserCan("admin.users.setperms"))
-            {
-                <form asp-controller="AdminUsers" asp-action="SetPerms" asp-route-userid="@user.UserId" method="POST"
+        <tr>
+            <form asp-controller="AdminUsers" asp-action="SetPerms" asp-route-userid="@user.UserId" method="POST"
             enctype="application/x-www-form-urlencoded" style="display:inline">
-                    r:<select name="roleId" required class="blueunderline">
+            
+                <td>@user.Name </td>
+                <td><span class="username">@@@user.Login</span></td>
+                <td>
+                    @if (Context.UserCan("admin.users.setperms"))
+                    {
+                        @:<select name="roleId" required class="blueunderline">
                         @foreach (var role in Model.Roles.Values)
                         {
                             if (role.RoleId == user.RoleId)
@@ -22,8 +35,17 @@
                                 <option value="@role.RoleId">@role.Name</option>
                             }
                         }
-                    </select>,
-                    p:<select name="planId" required class="blueunderline">
+                        @:</select>
+                    }
+                    else
+                    {
+                        @Model.Roles[user.RoleId].Name
+                    }
+                </td>
+                <td>
+                    @if (Context.UserCan("admin.users.setperms"))
+                    {
+                        @:<select name="planId" required class="blueunderline">
                         @foreach (var plan in Model.Plans.Values)
                         {
                             if (plan.PlanId == user.PlanId)
@@ -35,16 +57,23 @@
                                 <option value="@plan.PlanId">@plan.Name</option>
                             }
                         }
-                    </select>
-                    <input type="submit" value="Set permissions">
-                </form>
-            }
-            else
-            {
-                @: r:@Model.Roles[user.RoleId].Name,
-                @: p:@Model.Plans[user.PlanId].Name
-            }
-            )
-        </li>
+                        @:</select>
+                    }
+                    else
+                    {
+                        @Model.Plans[user.PlanId].Name
+                    }
+                </td>
+                <td>
+                    @if (Context.UserCan("admin.users.setperms"))
+                    {
+                        <input type="submit" value="Apply">
+                    }
+                </td>
+            
+            </form>
+        </tr>
+
     }
-</ul>
+    </tbody>
+</table>
