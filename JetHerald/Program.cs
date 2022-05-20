@@ -1,16 +1,18 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.Security.Cryptography;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using NLog.Web;
+
 using JetHerald;
 using JetHerald.Options;
 using JetHerald.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Http;
 using JetHerald.Middlewares;
-using System.Security.Cryptography;
 using JetHerald.Utils;
 using JetHerald.Authorization;
+using Microsoft.Extensions.Hosting;
 
 #if DEBUG
 var debug = true;
@@ -24,21 +26,15 @@ try
     log.Info("init main");
 
     DapperConverters.Register();
-    log.Info($"Permissions digest:\n{string.Join('\n', FlightcheckHelpers.GetUsedPermissions(typeof(Program)))}");
 
     var builder = WebApplication.CreateBuilder(new WebApplicationOptions
     {
-        WebRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"),
-        ContentRootPath = Directory.GetCurrentDirectory(),
+        WebRootPath = "wwwroot",
         Args = args, 
     });
 
     builder.WebHost.ConfigureAppConfiguration((hostingContext, config) =>
     {
-        config.AddIniFile("secrets.ini",
-            optional: true, reloadOnChange: true);
-        config.AddIniFile($"secrets.{hostingContext.HostingEnvironment.EnvironmentName}.ini",
-            optional: true, reloadOnChange: true);
         config.AddJsonFile("secrets.json", optional: true, reloadOnChange: true);
         config.AddJsonFile($"secrets.{hostingContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
     });
@@ -81,11 +77,12 @@ try
     });
     services.AddPermissions();
 
-
     var app = builder.Build();
 
     // preflight checks
     {
+        File.WriteAllLines("used-permissions.txt", FlightcheckHelpers.GetUsedPermissions(typeof(Program)));
+
         var db = app.Services.GetService<Db>();
         using var ctx = await db.GetContext();
         var adminUser = await ctx.GetUser("admin");
@@ -108,16 +105,30 @@ try
             adminUser.PasswordHash = AuthUtils.GetHashFor(password, adminUser.PasswordSalt, adminUser.HashType);
             var newUser = await ctx.RegisterUser(adminUser);
             ctx.Commit();
-            log.Warn($"Created administrative account {adminUser.Login}:{password}. Be sure to save these credentials somewhere!");
+            File.WriteAllText("admin.txt", $"{adminUser.Login}\n{password}");
+            log.Warn($"Saved administrative account to admin.txt");
         }
     }
     app.UseMiddleware<RequestTimeTrackerMiddleware>();
     app.UsePathBase(cfg.GetValue<string>("PathBase"));
+    app.UseForwardedHeaders();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    else
+    {
+        app.UseExceptionHandler("/Error");
+        // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+        app.UseHsts();
+    }
+
+    app.UseHttpsRedirection();
+
     app.UseAuthentication();
     app.UseMiddleware<AnonymousUserMassagerMiddleware>();
-    app.UseDeveloperExceptionPage();
-    app.UseHsts();
-    app.UseHttpsRedirection();
+
     app.UseStaticFiles();
     app.UseStatusCodePagesWithReExecute("/{0}");
     app.UseRouting();
