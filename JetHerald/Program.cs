@@ -30,7 +30,7 @@ try
     var builder = WebApplication.CreateBuilder(new WebApplicationOptions
     {
         WebRootPath = "wwwroot",
-        Args = args, 
+        Args = args,
     });
 
     builder.WebHost.ConfigureAppConfiguration((hostingContext, config) =>
@@ -90,7 +90,7 @@ try
         {
             var adminRole = (await ctx.GetRoles()).First(r => r.Name == "admin");
             var unlimitedPlan = (await ctx.GetPlans()).First(p => p.Name == "unlimited");
-            
+
             var authCfg = app.Services.GetService<IOptions<AuthConfig>>().Value;
             var password = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
             adminUser = new JetHerald.Contracts.User()
@@ -130,7 +130,7 @@ try
     app.UseMiddleware<AnonymousUserMassagerMiddleware>();
 
     app.UseStaticFiles();
-    app.UseStatusCodePagesWithReExecute("/{0}");
+    app.UseStatusCodePagesWithReExecute("/ui/{0}");
     app.UseRouting();
     app.UseAuthorization();
     app.UseEndpoints(endpoints =>
