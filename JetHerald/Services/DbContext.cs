@@ -2,6 +2,7 @@
 using System.Threading;
 using System.ComponentModel;
 using MySql.Data.MySqlClient;
+using Dapper;
 using Dapper.Transaction;
 using JetHerald.Options;
 using JetHerald.Contracts;
@@ -26,6 +27,12 @@ public class Db
 
         var tran = await conn.BeginTransactionAsync(lvl, token);
         return new DbContext(tran);
+    }
+
+    public async Task<IEnumerable<HeartEvent>> ProcessHearts()
+    {
+        using var conn = GetConnection();
+        return await conn.QueryAsync<HeartEvent>("CALL process_hearts();");
     }
 }
 
@@ -219,9 +226,6 @@ public class DbContext : IDisposable
         => Tran.QueryFirstAsync<int>(
             @"CALL report_heartbeat(@topicId, @heart, @timeoutSeconds);",
             new { topicId, heart, timeoutSeconds });
-
-    public Task<IEnumerable<HeartEvent>> ProcessHearts()
-        => Tran.QueryAsync<HeartEvent>("CALL process_hearts();");
 
     public Task MarkHeartAttackReported(ulong id)
         => Tran.ExecuteAsync("UPDATE heartevent SET Status = 'reported' WHERE HeartEventId = @id", new { id });
