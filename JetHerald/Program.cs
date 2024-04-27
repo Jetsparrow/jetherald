@@ -33,12 +33,6 @@ try
         Args = args,
     });
 
-    builder.WebHost.ConfigureAppConfiguration((hostingContext, config) =>
-    {
-        config.AddJsonFile("secrets.json", optional: true, reloadOnChange: true);
-        config.AddJsonFile($"secrets.{hostingContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
-    });
-
     builder.Logging.ClearProviders();
     builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
     builder.Host.UseNLog();
