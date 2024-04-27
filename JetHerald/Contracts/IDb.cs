@@ -2,14 +2,18 @@
 
 public class Topic
 {
-    public uint TopicId { get; set; }
+    public uint TopicId { get; private set; }
     public uint CreatorId { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string ReadToken { get; set; }
     public string WriteToken { get; set; }
 
-    public NamespacedId? Sub { get; set; }
+
+    // joined
+    public NamespacedId? Sub { get; private set; }
+    public string? Login { get; private set; }
+    public double TimeoutMultiplier { get; private set; } = 1;
 
     public override string ToString()
         => Name == Description ? Name : $"{Name}: {Description}";

@@ -68,7 +68,7 @@ public class ReportController : ControllerBase
 
         await Herald.BroadcastMessageRaw(t.TopicId, $"|{t.Description}|:\n{args.Message}");
 
-        Timeouts.ApplyCost(t.TopicId, Config.ReportCost);
+        Timeouts.ApplyCost(t.TopicId, Config.ReportCost * t.TimeoutMultiplier);
 
         return new OkResult();
     }

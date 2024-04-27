@@ -101,7 +101,11 @@ public class DbContext : IDisposable
 
     public Task<Topic> GetTopic(string name)
         => Tran.QuerySingleOrDefaultAsync<Topic>(
-            "SELECT * FROM topic WHERE Name = @name",
+            @"SELECT t.*, u.Login, p.TimeoutMultiplier
+	        FROM `topic` t
+	        JOIN `user` u ON t.CreatorId = u.UserId
+            JOIN `plan` p ON u.PlanId = p.PlanId
+            WHERE t.Name = @name;",
             new { name });
 
     public Task<int> DeleteTopic(string name, uint userId)

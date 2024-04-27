@@ -21,8 +21,9 @@ public class LeakyBucket
         return time > debtLimit;
     }
 
-    public void ApplyCost(uint key, int cost)
+    public void ApplyCost(uint key, double cost)
     {
+        if (cost <= 0) return;
         expiryDates.AddOrUpdate(key,
             key => DateTime.UtcNow.AddSeconds(cost),
             (key, oldDebt) =>

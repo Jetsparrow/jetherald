@@ -82,7 +82,7 @@ public class HeartbeatController : ControllerBase
         if (wasBeating == 0)
             await Herald.BroadcastMessageRaw(t.TopicId, $"!{t.Description}!:\nHeart \"{heart}\" has started beating at {DateTime.UtcNow:O}");
 
-        Timeouts.ApplyCost(t.TopicId, Config.HeartbeatCost);
+        Timeouts.ApplyCost(t.TopicId, Config.HeartbeatCost * t.TimeoutMultiplier);
 
         return new OkResult();
     }
