@@ -67,7 +67,7 @@ public class HeartbeatController : ControllerBase
     {
         var heart = args.Heart ?? "General";
 
-        var ctx = await Db.GetContext();
+        using var ctx = await Db.GetContext();
         var t = await ctx.GetTopic(args.Topic);
         if (t == null)
             return new NotFoundResult();
