@@ -13,13 +13,18 @@ using JetHerald.Middlewares;
 using JetHerald.Utils;
 using JetHerald.Authorization;
 using Microsoft.Extensions.Hosting;
+using NLog;
+
+
 
 #if DEBUG
-var debug = true;
+var nlogConfigPath = "nlog.debug.config";
 #else
-var debug = false;
+var nlogConfigPath = "nlog.config";
 #endif
-var log = NLogBuilder.ConfigureNLog(debug ? "nlog.debug.config" : "nlog.config").GetCurrentClassLogger();
+LogManager.ThrowConfigExceptions = true;
+LogManager.Setup().LoadConfigurationFromFile(nlogConfigPath);
+var log = LogManager.GetCurrentClassLogger();
 
 try
 {
@@ -127,10 +132,7 @@ try
     app.UseStatusCodePagesWithReExecute("/ui/{0}");
     app.UseRouting();
     app.UseAuthorization();
-    app.UseEndpoints(endpoints =>
-    {
-        endpoints.MapControllers();
-    });
+    app.MapControllers();
     app.Run();
 }
 catch (Exception exception)
