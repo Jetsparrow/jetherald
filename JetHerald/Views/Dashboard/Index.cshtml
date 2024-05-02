@@ -6,16 +6,20 @@
     <div class="clock">@DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") @TimeZoneInfo.Local.StandardName</div>
 </div>
 <div class="topics-list">
-    @foreach (var topic in @Model.Topics)
+    @foreach (var ti in @Model.Topics)
     {
         <div class="topic-info">
-            <h3>@topic.Name</h3>
+            <h3>@ti.Topic.Name</h3>
             <div>
-                <span class="token-descr"> Read: </span><span class="token-field">@topic.ReadToken</span>
-                <span class="token-descr">Write: </span><span class="token-field">@topic.WriteToken</span>
+                <span class="token-descr"> Read: </span><span class="token-field">@ti.Topic.ReadToken</span>
+                <span class="token-descr">Write: </span><span class="token-field">@ti.Topic.WriteToken</span>
             </div>
-
-            @if (@Model.Hearts.Contains(topic.TopicId))
+            @if (Model.User.TimeoutMultiplier > 0)
+            {
+                <div>
+                    <meter min="0" high="50" max="100" value="@ti.Utilization">@ti.Utilization%</meter>
+                </div>
+            }@if (ti.Hearts.Any())
             {
                 <table class="hearts-table">
                     <tr>
@@ -24,7 +28,7 @@
                         <th>Last beat</th>
                         <th>Expires on</th>
                     </tr>
-                    @foreach (var heart in @Model.Hearts[topic.TopicId])
+                    @foreach (var heart in @ti.Hearts)
                     {
                         <tr> 
                             <td>@heart.Name</td>

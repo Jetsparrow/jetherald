@@ -12,6 +12,14 @@ public class LeakyBucket
         this.log = log;
     }
 
+    public double GetUtilization(uint key)
+    {
+        var now = DateTime.UtcNow;
+        var cur = expiryDates.GetValueOrDefault(key, now);
+        var util = (cur - now).TotalSeconds / config.DebtLimitSeconds;
+        return Math.Clamp(util, 0, 1);
+    }
+
     public bool IsTimedOut(uint key)
     {
         var now = DateTime.UtcNow;

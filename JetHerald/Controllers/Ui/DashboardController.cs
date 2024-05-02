@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 using JetHerald.Services;
 using JetHerald.Utils;
@@ -12,9 +11,11 @@ namespace JetHerald.Controllers.Ui;
 public class DashboardController : Controller
 {
     Db Db { get; }
-    public DashboardController(Db db)
+    LeakyBucket LeakyBucket { get; }
+    public DashboardController(Db db, LeakyBucket leakyBucket)
     {
         Db = db;
+        LeakyBucket = leakyBucket;
     }
 
     [HttpGet, Route("ui/dashboard/")]
@@ -25,11 +26,17 @@ public class DashboardController : Controller
         var user = await ctx.GetUser(login);
         var topics = await ctx.GetTopicsForUser(user.UserId);
         var hearts = await ctx.GetHeartsForUser(user.UserId);
-        var vm = new DashboardViewModel
+        var vm = new DashboardViewModel();
+        foreach (var t in topics.OrderBy(x => x.TopicId))
         {
-            Topics = topics.ToArray(),
-            Hearts = hearts.Where(h => h.ExpiryTs + TimeSpan.FromDays(90) >= DateTime.UtcNow ).ToLookup(h => h.TopicId)
-        };
+            vm.Topics.Add(new TopicInfo()
+            {
+                Topic = t,
+                Hearts = hearts.Where(h => h.TopicId == t.TopicId).ToList(),
+                Utilization =  (int)Math.Round(LeakyBucket.GetUtilization(t.TopicId) * 100)
+            });
+        }
+        vm.User = user;
         return View(vm);
     }
 }
@@ -58,8 +65,13 @@ public static class DateTimeExt
 
 public class DashboardViewModel
 { 
-    public Topic[] Topics { get; set; }
-    public ILookup<uint, Heart> Hearts { get; set; }
-    
+    public User User { get; set; }
+    public List<TopicInfo> Topics { get; set; } = new();
+}
 
+public class TopicInfo
+{
+    public Topic Topic { get; set; }
+    public ICollection<Heart> Hearts { get; set; }
+    public int Utilization { get; set; }
 }

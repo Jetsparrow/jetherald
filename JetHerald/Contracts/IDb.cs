@@ -54,7 +54,7 @@ public class User
     public string Allow { get; set; }
    
     public int? MaxTopics { get; set; }
-    public int? TimeoutMultiplier { get; set; }
+    public double? TimeoutMultiplier { get; set; }
 
     public DateTime CreateTs { get; set; }
 }
