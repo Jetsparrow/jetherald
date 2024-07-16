@@ -53,7 +53,7 @@ public class RegistrationController : Controller
         public string Name { get; set; }
 
         [BindProperty(Name = "login"), BindRequired]
-        [StringLength(maximumLength: 64, MinimumLength = 6)]
+        [StringLength(maximumLength: 64, MinimumLength = 3)]
         public string Login { get; set; }
 
         [BindProperty(Name = "password"), BindRequired]
