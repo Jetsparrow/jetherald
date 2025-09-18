@@ -35,7 +35,7 @@ CREATE TABLE `heart` (
   PRIMARY KEY (`HeartId`),
   UNIQUE KEY `idx_TopicId_Heart_UNIQUE` (`TopicId`,`Heart`),
   CONSTRAINT `fk_heart_TopicId` FOREIGN KEY (`TopicId`) REFERENCES `topic` (`TopicId`)
-) ENGINE=InnoDB AUTO_INCREMENT=227102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -56,7 +56,7 @@ CREATE TABLE `heartevent` (
   PRIMARY KEY (`HeartEventId`),
   KEY `idx_topic` (`TopicId`,`CreateTs`),
   KEY `idx_reported` (`Status`)
-) ENGINE=InnoDB AUTO_INCREMENT=372 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -74,7 +74,7 @@ CREATE TABLE `plan` (
   `TimeoutMultiplier` double NOT NULL,
   PRIMARY KEY (`PlanId`),
   UNIQUE KEY `Name_UNIQUE` (`Name`)
-) ENGINE=InnoDB AUTO_INCREMENT=4099 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4098 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -133,7 +133,7 @@ CREATE TABLE `topic` (
   UNIQUE KEY `TopicName_UNIQUE` (`Name`),
   UNIQUE KEY `ReadToken_UNIQUE` (`ReadToken`),
   KEY `Creator_INDEX` (`Creator`)
-) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
