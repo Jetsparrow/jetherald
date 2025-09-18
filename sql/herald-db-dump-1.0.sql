@@ -25,8 +25,8 @@ DROP TABLE IF EXISTS `heart`;
 CREATE TABLE `heart` (
   `HeartId` bigint unsigned NOT NULL AUTO_INCREMENT,
   `TopicId` int unsigned NOT NULL,
-  `Heart` varchar(32) NOT NULL,
-  `Name` varchar(45) GENERATED ALWAYS AS (`Heart`) VIRTUAL,
+  `Heart` varchar(255) NOT NULL,
+  `Name` varchar(255) GENERATED ALWAYS AS (`Heart`) VIRTUAL,
   `Status` varchar(16) NOT NULL DEFAULT 'beating',
   `LastBeatTs` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `ExpiryTs` timestamp NOT NULL,
@@ -49,13 +49,13 @@ DROP TABLE IF EXISTS `heartevent`;
 CREATE TABLE `heartevent` (
   `HeartEventId` bigint unsigned NOT NULL AUTO_INCREMENT,
   `TopicId` int unsigned NOT NULL,
-  `Heart` varchar(32) NOT NULL,
+  `Heart` varchar(255) NOT NULL,
   `Status` varchar(16) NOT NULL DEFAULT 'created',
   `Event` varchar(16) NOT NULL COMMENT 'ENUM(''created'',''started'',''stopped'',''deleted'')',
   `CreateTs` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`HeartEventId`),
-  KEY `idx_topic` (`TopicId`,`CreateTs`),
-  KEY `idx_reported` (`Status`)
+  KEY `idx_heartevent_TopicId` (`TopicId`,`HeartEventId`)
+  KEY `idx_heartevent_Status` (`Status`),
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -83,7 +83,9 @@ CREATE TABLE `plan` (
 
 LOCK TABLES `plan` WRITE;
 /*!40000 ALTER TABLE `plan` DISABLE KEYS */;
-INSERT INTO `plan` VALUES (4096,'none',0,1),(4097,'unlimited',1000000,0);
+INSERT INTO `plan` VALUES 
+(4096,'none',0,1),
+(4097,'unlimited',1000000,0);
 /*!40000 ALTER TABLE `plan` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -108,7 +110,10 @@ CREATE TABLE `role` (
 
 LOCK TABLES `role` WRITE;
 /*!40000 ALTER TABLE `role` DISABLE KEYS */;
-INSERT INTO `role` VALUES (4096,'anonymous','login;register;'),(4097,'admin','**;'),(4098,'client','dashboard;profile;topic;');
+INSERT INTO `role` VALUES 
+(4096,'anonymous','login;register;'),
+(4097,'admin','**;'),
+(4098,'client','dashboard;profile;topic;');
 /*!40000 ALTER TABLE `role` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -121,7 +126,6 @@ DROP TABLE IF EXISTS `topic`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `topic` (
   `TopicId` int unsigned NOT NULL AUTO_INCREMENT,
-  `Creator` varchar(45) NOT NULL,
   `CreatorId` int unsigned NOT NULL,
   `Name` varchar(45) NOT NULL,
   `Description` varchar(45) NOT NULL,
@@ -132,7 +136,8 @@ CREATE TABLE `topic` (
   PRIMARY KEY (`TopicId`),
   UNIQUE KEY `TopicName_UNIQUE` (`Name`),
   UNIQUE KEY `ReadToken_UNIQUE` (`ReadToken`),
-  KEY `Creator_INDEX` (`Creator`)
+  KEY `fk_topic_CreatorId_idx` (`CreatorId`),
+  CONSTRAINT `fk_topic_CreatorId` FOREIGN KEY (`CreatorId`) REFERENCES `user` (`UserId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -175,7 +180,7 @@ CREATE TABLE `user` (
   KEY `fk_user_RoleId_idx` (`RoleId`),
   CONSTRAINT `fk_user_PlanId` FOREIGN KEY (`PlanId`) REFERENCES `plan` (`PlanId`),
   CONSTRAINT `fk_user_RoleId` FOREIGN KEY (`RoleId`) REFERENCES `role` (`RoleId`)
-) ENGINE=InnoDB AUTO_INCREMENT=4111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4098 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -184,7 +189,9 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (4096,4096,4096,'Anonymous','Anonymous',0xBADC0D35,0xBADC0D35,0,NOW(),NOW());
+INSERT INTO `user` VALUES 
+(4096,4096,4096,'Anonymous','Anonymous',0xBADC0D35,0xBADC0D35,0,NOW(),NOW()),
+(4097,4097,4097,'admin','Administrator',0xEF9128C1CB962024D58B50ECFA8376CC6919529BA6533AB03CE8D223BDE97BE14EF1534D85C3378AA09BECABF865ED746F2780D1A2080F7CA03486ADEE7D57C1,0xF8628C3DD353C12C5996D3E9838B8F034A2E7E32581C6771B3B5D3FBDA93CF70CBD779449ACC4A4246726BBA3F4E53035EC8FBE4B24A93E65B9E4EA0A0C38166,1,NOW(),NOW());
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -209,7 +216,7 @@ CREATE TABLE `userinvite` (
   KEY `fk_userinvite_RoleId_idx` (`RoleId`),
   CONSTRAINT `fk_userinvite_PlanId` FOREIGN KEY (`PlanId`) REFERENCES `plan` (`PlanId`),
   CONSTRAINT `fk_userinvite_RoleId` FOREIGN KEY (`RoleId`) REFERENCES `role` (`RoleId`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -228,6 +235,10 @@ CREATE TABLE `usersession` (
   PRIMARY KEY (`SessionId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping events for database 'herald'
+--
 
 --
 -- Dumping routines for database 'herald'
@@ -255,10 +266,11 @@ BEGIN
 			WHERE ExpiryTs < @ts AND Status = 'beating';
 
 		UPDATE heart set Status = 'stopped' WHERE ExpiryTs < @ts AND Status = 'beating' AND HeartId > 0;
-			SET @id = (SELECT HeartEventId FROM heartevent WHERE `Status` = 'created' ORDER BY HeartEventId DESC LIMIT 1);
-
+		
+        -- updated hearts, now grab one event for report
+            
+		SET @id = (SELECT HeartEventId FROM heartevent WHERE `Status` = 'created' AND `Event` = 'stopped' ORDER BY HeartEventId DESC LIMIT 1);
 		UPDATE heartevent SET `Status` = 'processing' WHERE HeartEventId = @id;
-
 		SELECT ha.*, t.`Description`
 			FROM heartevent ha 
 			JOIN topic t USING (TopicId)
@@ -266,7 +278,6 @@ BEGIN
 	COMMIT;
 END ;;
 DELIMITER ;
-
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
@@ -281,7 +292,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`herald`@`%` PROCEDURE `report_heartbeat`(_topicId INT UNSIGNED, _heart VARCHAR(45), _timeoutSeconds INTEGER UNSIGNED)
+CREATE DEFINER=`herald`@`%` PROCEDURE `report_heartbeat`(_topicId INT UNSIGNED, _heart VARCHAR(255), _timeoutSeconds INTEGER UNSIGNED)
 BEGIN
 DECLARE beating INTEGER DEFAULT 0; 
 START TRANSACTION;
@@ -320,4 +331,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-05-13 18:44:48
+-- Dump completed on 2025-09-18 18:53:29
