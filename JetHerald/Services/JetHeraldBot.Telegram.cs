@@ -23,6 +23,8 @@ public partial class JetHeraldBot
         Client = new TelegramBotClient(TelegramConfig.ApiKey);
         Me = await Client.GetMeAsync();
 
+        Log.LogInformation("Connected to Telegram as {username}, id:{id})", Me.Username, Me.Id);
+
         Commands = new ChatCommandRouter(Me.Username, Log);
         Commands.Add(new SubscribeCommand(Db, Client), "subscribe", "sub");
         Commands.Add(new UnsubscribeCommand(Db, Client), "unsubscribe", "unsub");
