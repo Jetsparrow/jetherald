@@ -54,8 +54,8 @@ CREATE TABLE `heartevent` (
   `Event` varchar(16) NOT NULL COMMENT 'ENUM(''created'',''started'',''stopped'',''deleted'')',
   `CreateTs` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`HeartEventId`),
-  KEY `idx_heartevent_TopicId` (`TopicId`,`HeartEventId`)
-  KEY `idx_heartevent_Status` (`Status`),
+  KEY `idx_heartevent_TopicId` (`TopicId`,`HeartEventId`),
+  KEY `idx_heartevent_Status` (`Status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
