@@ -8,11 +8,13 @@ public class ConnectionStrings
 public class TelegramConfig
 {
     public string ApiKey { get; set; }
+    public string? ProxyUrl { get; set; }
 }
 
 public class DiscordConfig
 {
     public string Token { get; set; }
+    public string? ProxyUrl { get; set; }
 }
 
 public class TimeoutConfig

@@ -1,6 +1,8 @@
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using JetHerald.Commands;
+using System.Net;
+using System.Net.Http;
 namespace JetHerald.Services;
 public partial class JetHeraldBot
 {
@@ -9,15 +11,27 @@ public partial class JetHeraldBot
     async Task StartDiscord()
     {
         if (string.IsNullOrWhiteSpace(DiscordConfig.Token))
+        {
+            Log.LogInformation("No Discord token, ignoring.");
             return;
+        }
 
-        DiscordBot = new DiscordClient(new()
+        Log.LogInformation("Starting Discord client.");
+
+        DiscordConfiguration cfg = new()
         {
             Token = DiscordConfig.Token,
             TokenType = TokenType.Bot,
             Intents = DiscordIntents.AllUnprivileged,
             LoggerFactory = LoggerFactory
-        });
+        };
+
+        if (!string.IsNullOrWhiteSpace(DiscordConfig.ProxyUrl))
+        {
+            cfg.Proxy = new WebProxy(DiscordConfig.ProxyUrl);
+        }
+
+        DiscordBot = new DiscordClient(cfg);
 
         var commands = DiscordBot.UseCommandsNext(new CommandsNextConfiguration()
         {

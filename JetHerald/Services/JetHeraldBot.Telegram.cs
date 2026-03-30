@@ -1,12 +1,12 @@
+using JetHerald.Commands;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
-
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Exceptions;
-
-using JetHerald.Commands;
 
 namespace JetHerald.Services;
 public partial class JetHeraldBot
@@ -18,9 +18,23 @@ public partial class JetHeraldBot
     async Task StartTelegram()
     {
         if (string.IsNullOrWhiteSpace(TelegramConfig.ApiKey))
+        {
+            Log.LogInformation("No Telegram token, ignoring.");
             return;
+        }
 
-        Client = new TelegramBotClient(TelegramConfig.ApiKey);
+        Log.LogInformation("Starting Telegram client.");
+
+        var httpClientHandler = new HttpClientHandler();
+
+        if (!string.IsNullOrWhiteSpace(TelegramConfig.ProxyUrl))
+        {
+            httpClientHandler.Proxy = new WebProxy(TelegramConfig.ProxyUrl);
+            httpClientHandler.UseProxy = true;
+        }
+        var httpClient = new HttpClient(httpClientHandler);
+
+        Client = new TelegramBotClient(TelegramConfig.ApiKey, httpClient);
         Me = await Client.GetMeAsync();
 
         Log.LogInformation("Connected to Telegram as {username}, id:{id})", Me.Username, Me.Id);
